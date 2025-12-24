@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Frontend-Backend Connection Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test { margin: 10px 0; padding: 10px; border-radius: 5px; }
+        .success { background-color: #d4edda; color: #155724; }
+        .error { background-color: #f8d7da; color: #721c24; }
+        .info { background-color: #d1ecf1; color: #0c5460; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>KuberFashion Frontend-Backend Connection Test</h1>
+    
+    <div id="results"></div>
+    
+    <button onclick="testHealth()">Test Health Endpoint</button>
+    <button onclick="testProducts()">Test Products Endpoint</button>
+    <button onclick="testCategories()">Test Categories Endpoint</button>
+    <button onclick="testCORS()">Test CORS</button>
+    <button onclick="runAllTests()">Run All Tests</button>
+    
+    <script>
+        const API_BASE_URL = 'http://localhost:8080/api';
+        const results = document.getElementById('results');
+        
+        function addResult(message, type = 'info') {
+            const div = document.createElement('div');
+            div.className = `test ${type}`;
+            div.innerHTML = `<strong>${new Date().toLocaleTimeString()}</strong>: ${message}`;
+            results.appendChild(div);
+            results.scrollTop = results.scrollHeight;
+        }
+        
+        async function testHealth() {
+            addResult('Testing health endpoint...', 'info');
+            try {
+                const response = await fetch(`${API_BASE_URL}/health`);
+                const data = await response.json();
+                if (response.ok) {
+                    addResult(`✅ Health check passed: ${data.service} - ${data.status}`, 'success');
+                } else {
+                    addResult(`❌ Health check failed: ${response.status}`, 'error');
+                }
+            } catch (error) {
+                addResult(`❌ Health check error: ${error.message}`, 'error');
+            }
+        }
+        
+        async function testProducts() {
+            addResult('Testing products endpoint...', 'info');
+            try {
+                const response = await fetch(`${API_BASE_URL}/products`);
+                const data = await response.json();
+                if (response.ok && data.success) {
+                    addResult(`✅ Products loaded: ${data.data.length} products found`, 'success');
+                } else {
+                    addResult(`❌ Products failed: ${response.status}`, 'error');
+                }
+            } catch (error) {
+                addResult(`❌ Products error: ${error.message}`, 'error');
+            }
+        }
+        
+        async function testCategories() {
+            addResult('Testing categories endpoint...', 'info');
+            try {
+                const response = await fetch(`${API_BASE_URL}/categories`);
+                const data = await response.json();
+                if (response.ok && data.success) {
+                    addResult(`✅ Categories loaded: ${data.data.length} categories found`, 'success');
+                } else {
+                    addResult(`❌ Categories failed: ${response.status}`, 'error');
+                }
+            } catch (error) {
+                addResult(`❌ Categories error: ${error.message}`, 'error');
+            }
+        }
+        
+        async function testCORS() {
+            addResult('Testing CORS preflight...', 'info');
+            try {
+                const response = await fetch(`${API_BASE_URL}/products`, {
+                    method: 'OPTIONS',
+                    headers: {
+                        'Origin': window.location.origin,
+                        'Access-Control-Request-Method': 'GET',
+                        'Access-Control-Request-Headers': 'Content-Type'
+                    }
+                });
+                addResult(`✅ CORS preflight: ${response.status}`, 'success');
+            } catch (error) {
+                addResult(`❌ CORS error: ${error.message}`, 'error');
+            }
+        }
+        
+        async function runAllTests() {
+            results.innerHTML = '';
+            addResult('Starting comprehensive connection test...', 'info');
+            await testHealth();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            await testCORS();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            await testProducts();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            await testCategories();
+            addResult('All tests completed!', 'info');
+        }
+        
+        // Auto-run tests on page load
+        window.onload = () => {
+            addResult('Page loaded. Backend URL: ' + API_BASE_URL, 'info');
+            runAllTests();
+        };
+    </script>
+</body>
+</html>
