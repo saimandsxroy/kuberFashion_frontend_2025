@@ -15,10 +15,14 @@ const OrdersPage = () => {
       try {
         setLoading(true);
         setError(null);
-        
+
         const response = await ordersAPI.getMyOrders();
         if (response.data?.success) {
-          setOrders(response.data.data || []);
+          // Handle paginated response - data contains Page object with content array
+          const data = response.data.data;
+          // Check if it's a paginated response (has content property) or a plain array
+          const ordersArray = Array.isArray(data) ? data : (data?.content || []);
+          setOrders(ordersArray);
         }
       } catch (error) {
         console.error('Failed to fetch orders:', error);
@@ -98,7 +102,7 @@ const OrdersPage = () => {
                 <ArrowLeft className="h-4 w-4" />
                 <span>Back to Home</span>
               </Button>
-              
+
               <div>
                 <h1 className="text-2xl sm:text-3xl font-bold text-[#1a1a1a] flex items-center">
                   <Package className="h-6 w-6 mr-2 text-[#047BD2]" />

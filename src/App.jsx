@@ -12,6 +12,8 @@ import SignupPage from './pages/SignupPage';
 import CartPage from './user/pages/CartPage';
 import WishlistPage from './user/pages/WishlistPage';
 import OrdersPage from './user/pages/OrdersPage';
+import CheckoutPage from './user/pages/CheckoutPage';
+import PaymentStatusPage from './user/pages/PaymentStatusPage';
 import TrendingPage from './user/pages/TrendingPage';
 import TopProductsPage from './user/pages/TopProductsPage';
 import InterestProductsPage from './user/pages/InterestProductsPage';
@@ -21,6 +23,7 @@ import PrivacyPolicy from './pages/PrivacyPolicy';
 import RefundPolicy from './pages/RefundPolicy';
 import ReturnPolicy from './pages/ReturnPolicy';
 import ShippingPolicy from './pages/ShippingPolicy';
+import AboutPage from './pages/AboutPage';
 import { Footer } from './components/Footer';
 import ScrollToTop from './components/ScrollToTop';
 import RequireAuth from './utils/RequireAuth';
@@ -69,6 +72,7 @@ function App() {
                 <Route path="/refund-policy" element={<RefundPolicy />} />
                 <Route path="/return-policy" element={<ReturnPolicy />} />
                 <Route path="/shipping-policy" element={<ShippingPolicy />} />
+                <Route path="/about" element={<AboutPage />} />
 
                 {/* Protected User Routes */}
                 <Route element={<RequireAuth />}>
@@ -78,6 +82,8 @@ function App() {
                   <Route path="/wishlist" element={<WishlistPage />} />
                   <Route path="/referral" element={<Referral />} />
                   <Route path="/orders" element={<OrdersPage />} />
+                  <Route path="/checkout" element={<CheckoutPage />} />
+                  <Route path="/payment/status" element={<PaymentStatusPage />} />
                   <Route path="/profile" element={<UserProfilePage />} />
                 </Route>
 

@@ -75,7 +75,7 @@ const CartPage = () => {
                 <ArrowLeft className="h-4 w-4" />
                 <span>Continue Shopping</span>
               </Button>
-              
+
               <div>
                 <h1 className="text-2xl sm:text-3xl font-bold text-[#1a1a1a]">
                   Shopping Cart
@@ -103,7 +103,7 @@ const CartPage = () => {
             <div className="bg-white rounded-lg shadow-sm">
               <div className="p-6">
                 <h2 className="text-lg font-semibold text-gray-900 mb-6">Cart Items</h2>
-                
+
                 <div className="space-y-6">
                   {cart.items.map((item) => (
                     <motion.div
@@ -144,11 +144,11 @@ const CartPage = () => {
                         >
                           <Minus className="h-4 w-4" />
                         </Button>
-                        
+
                         <span className="text-lg font-medium w-8 text-center">
                           {item.quantity}
                         </span>
-                        
+
                         <Button
                           onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
                           variant="outline"
@@ -179,23 +179,23 @@ const CartPage = () => {
           <div className="lg:w-96">
             <div className="bg-white rounded-lg shadow-sm p-6 sticky top-6">
               <h2 className="text-lg font-semibold text-gray-900 mb-6">Order Summary</h2>
-              
+
               <div className="space-y-4">
                 <div className="flex justify-between">
                   <span className="text-gray-600">Subtotal ({cart.totalItems} items)</span>
                   <span className="font-medium">₹{cart.totalAmount.toFixed(2)}</span>
                 </div>
-                
+
                 <div className="flex justify-between">
                   <span className="text-gray-600">Shipping</span>
                   <span className="font-medium text-green-600">Free</span>
                 </div>
-                
+
                 <div className="flex justify-between">
                   <span className="text-gray-600">Tax</span>
                   <span className="font-medium">₹{(cart.totalAmount * 0.08).toFixed(2)}</span>
                 </div>
-                
+
                 <div className="border-t pt-4">
                   <div className="flex justify-between">
                     <span className="text-lg font-semibold">Total</span>
@@ -207,10 +207,10 @@ const CartPage = () => {
               </div>
 
               <div className="mt-6 space-y-3">
-                <Button className="w-full bg-[#047BD2] hover:bg-[#0369A1] text-white py-3" onClick={handleWhatsAppCheckout}>
+                <Button className="w-full bg-[#047BD2] hover:bg-[#0369A1] text-white py-3" onClick={() => navigate('/checkout')}>
                   Proceed to Checkout
                 </Button>
-                
+
                 <Button
                   variant="outline"
                   className="w-full"

@@ -158,6 +158,25 @@ export const referralAPI = {
   getCode: () => api.get('/referral/code'),
 };
 
+// Addresses API
+export const addressesAPI = {
+  getAll: () => api.get('/addresses'),
+  getById: (id) => api.get(`/addresses/${id}`),
+  getDefault: () => api.get('/addresses/default'),
+  create: (data) => api.post('/addresses', data),
+  update: (id, data) => api.put(`/addresses/${id}`, data),
+  delete: (id) => api.delete(`/addresses/${id}`),
+  setDefault: (id) => api.put(`/addresses/${id}/default`),
+};
+
+// Payments API
+export const paymentsAPI = {
+  initiate: (orderId) => api.post('/payments/initiate', { orderId }),
+  getStatus: (merchantOrderId) => api.get(`/payments/status/${merchantOrderId}`),
+  confirm: (merchantOrderId) => api.post('/payments/confirm', { merchantOrderId }),
+  fail: (merchantOrderId) => api.post('/payments/fail', { merchantOrderId }),
+};
+
 // User API
 export const userAPI = {
   getProfile: () => api.get('/users/profile'),

@@ -7,28 +7,20 @@ const footerLinks = [
   {
     label: 'Shop',
     links: [
-      { title: 'New Arrivals', href: '/new-arrivals' },
-      { title: 'Best Sellers', href: '/best-sellers' },
-      { title: 'Sale', href: '/sale' },
       { title: 'Trending Now', href: '/trending' },
+      { title: 'Recommended', href: '/interest-products' },
     ],
   },
   {
     label: 'Customer Service',
     links: [
-      { title: 'Contact Us', href: '/contact' },
-      { title: 'FAQs', href: '/faqs' },
-      { title: 'Shipping & Returns', href: '/shipping' },
-      { title: 'Track Order', href: '/track-order' },
+      { title: 'Chat on WhatsApp', href: 'https://wa.me/919179193970', external: true },
     ],
   },
   {
     label: 'About Us',
     links: [
       { title: 'Our Story', href: '/about' },
-      { title: 'Careers', href: '/careers' },
-      { title: 'Blog', href: '/blog' },
-      { title: 'Press', href: '/press' },
     ],
   },
   {
@@ -50,7 +42,6 @@ const socialLinks = [
 ];
 
 const features = [
-  { icon: Truck, title: 'Free Shipping', description: 'On orders over $50' },
   { icon: RefreshCw, title: 'Easy Returns', description: '30-day return policy' },
   { icon: Shield, title: 'Secure Payment', description: '100% secure payment' },
   { icon: CreditCard, title: 'Flexible Payment', description: 'Multiple payment options' },
@@ -144,12 +135,23 @@ export function Footer() {
               <ul className="mt-4 space-y-3">
                 {section.links.map((link, linkIndex) => (
                   <li key={linkIndex}>
-                    <Link
-                      to={link.href}
-                      className="text-sm text-gray-500 hover:text-gray-900 transition-colors duration-200"
-                    >
-                      {link.title}
-                    </Link>
+                    {link.external ? (
+                      <a
+                        href={link.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm text-gray-500 hover:text-gray-900 transition-colors duration-200"
+                      >
+                        {link.title}
+                      </a>
+                    ) : (
+                      <Link
+                        to={link.href}
+                        className="text-sm text-gray-500 hover:text-gray-900 transition-colors duration-200"
+                      >
+                        {link.title}
+                      </Link>
+                    )}
                   </li>
                 ))}
               </ul>
