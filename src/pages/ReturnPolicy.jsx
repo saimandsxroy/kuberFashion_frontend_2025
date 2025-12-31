@@ -42,18 +42,7 @@ const ReturnPolicy = () => {
                     </ul>
                 </section>
 
-                <section>
-                    <h2 className="text-xl font-semibold text-gray-900">Items Not Eligible for Return</h2>
-                    <ul className="list-disc pl-6 text-gray-700 mt-2 space-y-1">
-                        <li>Innerwear, lingerie, socks, and swimwear (hygiene reasons)</li>
-                        <li>Customized or personalized products</li>
-                        <li>Products marked as "Final Sale" or "Non-Returnable"</li>
-                        <li>Items with removed or missing tags</li>
-                        <li>Sale items (unless defective)</li>
-                        <li>Gift cards and vouchers</li>
-                        <li>Beauty and personal care products</li>
-                    </ul>
-                </section>
+               
 
                 <section>
                     <h2 className="text-xl font-semibold text-gray-900">How to Initiate a Return</h2>
