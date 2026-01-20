@@ -1,166 +1,224 @@
 import React, { useEffect, useState } from 'react';
 import { adminAPI } from '../../services/api';
-import { Button } from '../../components/Button';
-import {
-  Search,
-  Phone,
-  ChevronRight,
-  ChevronDown,
-  User,
-  Mail,
-  Calendar,
-  Award,
-  Users,
-  Shield,
-  RefreshCw
-} from 'lucide-react';
+import { Search, Phone, ChevronRight, ChevronDown, User, Mail, Calendar, Award, Users, Shield, RefreshCw, Layers, DollarSign, Crown, Gem, Star, Sparkles } from 'lucide-react';
+import { useNotification } from '../../components/Notification';
 
-// Level colors for visual hierarchy
-const levelColors = [
-  'border-l-blue-500 bg-blue-50',
-  'border-l-green-500 bg-green-50',
-  'border-l-yellow-500 bg-yellow-50',
-  'border-l-orange-500 bg-orange-50',
-  'border-l-red-500 bg-red-50',
-  'border-l-purple-500 bg-purple-50',
-  'border-l-pink-500 bg-pink-50',
-];
+// Premium level color configurations - each level gets a unique luxurious color scheme
+const levelColors = {
+  0: {
+    gradient: 'from-amber-400 via-yellow-500 to-orange-500',
+    bg: 'bg-gradient-to-r from-amber-50 to-yellow-50',
+    border: 'border-amber-200',
+    ring: 'ring-amber-500/20',
+    text: 'text-amber-700',
+    badge: 'bg-gradient-to-r from-amber-500 to-yellow-500 text-white',
+    icon: Crown,
+    label: 'Genesis Root'
+  },
+  1: {
+    gradient: 'from-emerald-400 via-green-500 to-teal-500',
+    bg: 'bg-gradient-to-r from-emerald-50 to-green-50',
+    border: 'border-emerald-200',
+    ring: 'ring-emerald-500/20',
+    text: 'text-emerald-700',
+    badge: 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white',
+    icon: Gem,
+    label: 'Level 1'
+  },
+  2: {
+    gradient: 'from-blue-400 via-indigo-500 to-purple-500',
+    bg: 'bg-gradient-to-r from-blue-50 to-indigo-50',
+    border: 'border-blue-200',
+    ring: 'ring-blue-500/20',
+    text: 'text-blue-700',
+    badge: 'bg-gradient-to-r from-blue-500 to-indigo-500 text-white',
+    icon: Star,
+    label: 'Level 2'
+  },
+  3: {
+    gradient: 'from-violet-400 via-purple-500 to-fuchsia-500',
+    bg: 'bg-gradient-to-r from-violet-50 to-purple-50',
+    border: 'border-violet-200',
+    ring: 'ring-violet-500/20',
+    text: 'text-violet-700',
+    badge: 'bg-gradient-to-r from-violet-500 to-purple-500 text-white',
+    icon: Sparkles,
+    label: 'Level 3'
+  },
+  4: {
+    gradient: 'from-rose-400 via-pink-500 to-red-500',
+    bg: 'bg-gradient-to-r from-rose-50 to-pink-50',
+    border: 'border-rose-200',
+    ring: 'ring-rose-500/20',
+    text: 'text-rose-700',
+    badge: 'bg-gradient-to-r from-rose-500 to-pink-500 text-white',
+    icon: Award,
+    label: 'Level 4'
+  },
+  5: {
+    gradient: 'from-cyan-400 via-sky-500 to-blue-500',
+    bg: 'bg-gradient-to-r from-cyan-50 to-sky-50',
+    border: 'border-cyan-200',
+    ring: 'ring-cyan-500/20',
+    text: 'text-cyan-700',
+    badge: 'bg-gradient-to-r from-cyan-500 to-sky-500 text-white',
+    icon: Users,
+    label: 'Level 5'
+  },
+  6: {
+    gradient: 'from-slate-400 via-gray-500 to-zinc-600',
+    bg: 'bg-gradient-to-r from-slate-50 to-gray-50',
+    border: 'border-slate-200',
+    ring: 'ring-slate-500/20',
+    text: 'text-slate-700',
+    badge: 'bg-gradient-to-r from-slate-500 to-gray-500 text-white',
+    icon: User,
+    label: 'Level 6'
+  }
+};
 
-const ReferralNode = ({ node, depth = 0, defaultExpanded = true }) => {
+const ReferralNode = ({ node, depth = 0, isLast = false, defaultExpanded = true, onViewTree }) => {
   const [expanded, setExpanded] = useState(defaultExpanded);
   const hasChildren = node.children && node.children.length > 0;
-  const levelColor = levelColors[depth % levelColors.length];
 
+  // Get level from node or use depth
+  const level = node.level ?? depth;
+  const colorConfig = levelColors[Math.min(level, 6)] || levelColors[6];
+  const LevelIcon = colorConfig.icon;
+
+  // Format date
   const formatDate = (dateStr) => {
     if (!dateStr) return 'N/A';
-    const date = new Date(dateStr);
-    return date.toLocaleDateString('en-IN', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+    return new Date(dateStr).toLocaleDateString('en-IN', {
+      day: 'numeric', month: 'short', year: 'numeric'
     });
   };
 
   return (
-    <div className={`${depth > 0 ? 'ml-6' : ''}`}>
-      {/* Node Card */}
-      <div className={`border-l-4 ${levelColor} rounded-lg shadow-sm mb-2 overflow-hidden transition-all duration-200 hover:shadow-md`}>
-        {/* Header - Always Visible */}
-        <div
-          className="flex items-center gap-3 p-4 cursor-pointer select-none"
-          onClick={() => setExpanded(!expanded)}
-        >
-          {/* Expand/Collapse Icon */}
-          <button
-            type="button"
-            className="flex-shrink-0 w-6 h-6 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
-            aria-label={expanded ? 'Collapse' : 'Expand'}
-          >
-            {hasChildren ? (
-              expanded ? (
-                <ChevronDown className="h-4 w-4 text-gray-600" />
-              ) : (
-                <ChevronRight className="h-4 w-4 text-gray-600" />
-              )
-            ) : (
-              <div className="w-2 h-2 rounded-full bg-gray-300" />
-            )}
-          </button>
+    <div className="relative">
+      {/* Node Content */}
+      <div className={`
+        relative flex items-center group
+        ${depth > 0 ? 'ml-8' : ''}
+        ${depth > 0 ? 'before:content-[""] before:absolute before:left-[-20px] before:top-1/2 before:-translate-y-1/2 before:w-5 before:h-px before:bg-gradient-to-r before:from-gray-300 before:to-transparent' : ''}
+      `}>
+        {/* Vertical connector with gradient */}
+        {depth > 0 && !isLast && (
+          <div className="absolute left-[-21px] top-1/2 h-full w-px bg-gradient-to-b from-gray-300 to-gray-200" />
+        )}
 
-          {/* User Avatar */}
-          <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-semibold text-sm">
-            {node.firstName?.[0]}{node.lastName?.[0]}
-          </div>
+        <div className={`
+          flex-1 rounded-2xl border-2 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5
+          mb-4 overflow-hidden
+          ${colorConfig.bg} ${colorConfig.border}
+          hover:ring-4 ${colorConfig.ring}
+        `}>
+          <div className="p-5 flex items-center gap-5 cursor-pointer" onClick={() => setExpanded(!expanded)}>
+            {/* Premium Avatar with Gradient */}
+            <div className={`
+              w-14 h-14 rounded-2xl flex items-center justify-center text-white font-bold text-lg shadow-lg
+              bg-gradient-to-br ${colorConfig.gradient}
+              transform transition-transform group-hover:scale-105
+            `}>
+              {node.role === 'ADMIN' ? <Shield className="w-6 h-6" /> : <LevelIcon className="w-6 h-6" />}
+            </div>
 
-          {/* Main Info */}
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="font-semibold text-gray-900">{node.fullName || `${node.firstName || ''} ${node.lastName || ''}`.trim() || 'Unknown'}</span>
-              <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${node.status === 'active'
-                  ? 'bg-green-100 text-green-700'
-                  : 'bg-red-100 text-red-700'
-                }`}>
-                {node.status}
-              </span>
-              {node.role === 'ADMIN' && (
-                <span className="text-xs px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 font-medium flex items-center gap-1">
-                  <Shield className="h-3 w-3" /> Admin
+            {/* Info */}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-3 mb-1.5">
+                <span className="font-heading font-bold text-gray-900 text-lg truncate">
+                  {node.fullName || `${node.firstName} ${node.lastName}`}
                 </span>
-              )}
-              <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">
-                Level {node.level ?? depth}
-              </span>
-            </div>
-            <div className="flex items-center gap-4 mt-1 text-sm text-gray-500 flex-wrap">
-              <span className="flex items-center gap-1">
-                <Phone className="h-3 w-3" /> {node.phone}
-              </span>
-              {node.email && (
-                <span className="flex items-center gap-1">
-                  <Mail className="h-3 w-3" /> {node.email}
+                {node.role === 'ADMIN' && (
+                  <span className="px-3 py-1 text-[10px] font-bold bg-black text-white rounded-full uppercase tracking-wider shadow-md">
+                    Admin
+                  </span>
+                )}
+                <span className={`px-3 py-1 text-[10px] font-bold rounded-full uppercase tracking-wider shadow-sm ${colorConfig.badge}`}>
+                  {colorConfig.label}
                 </span>
-              )}
-            </div>
-          </div>
-
-          {/* Stats */}
-          <div className="flex items-center gap-4 text-sm">
-            <div className="text-center">
-              <div className="flex items-center gap-1 text-amber-600 font-semibold">
-                <Award className="h-4 w-4" />
-                {node.coupons ?? 0}
+                <span className={`px-2.5 py-1 text-[10px] font-bold rounded-full uppercase tracking-wider ${node.status === 'active' ? 'bg-green-100 text-green-700 border border-green-200' : 'bg-red-100 text-red-700 border border-red-200'}`}>
+                  {node.status}
+                </span>
               </div>
-              <div className="text-xs text-gray-400">Coupons</div>
-            </div>
-            <div className="text-center">
-              <div className="flex items-center gap-1 text-blue-600 font-semibold">
-                <Users className="h-4 w-4" />
-                {node.totalReferrals ?? 0}
-              </div>
-              <div className="text-xs text-gray-400">Referrals</div>
-            </div>
-          </div>
-        </div>
-
-        {/* Expanded Details */}
-        {expanded && (
-          <div className="px-4 pb-4 pt-0 border-t border-gray-100">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-3 text-sm">
-              <div>
-                <div className="text-gray-400 text-xs uppercase tracking-wide">User ID</div>
-                <div className="text-gray-700 font-mono">#{node.id}</div>
-              </div>
-              <div>
-                <div className="text-gray-400 text-xs uppercase tracking-wide">Phone Number</div>
-                <div className="text-gray-700 font-mono">{node.phone}</div>
-              </div>
-              <div>
-                <div className="text-gray-400 text-xs uppercase tracking-wide">Email</div>
-                <div className="text-gray-700">{node.email || 'N/A'}</div>
-              </div>
-              <div>
-                <div className="text-gray-400 text-xs uppercase tracking-wide">Joined</div>
-                <div className="text-gray-700 flex items-center gap-1">
-                  <Calendar className="h-3 w-3" />
-                  {formatDate(node.signupDate)}
+              <div className="flex items-center gap-5 text-sm text-gray-600">
+                <div className="flex items-center gap-1.5">
+                  <Phone className="w-4 h-4 text-gray-400" />
+                  <span className="font-medium">{node.phone}</span>
+                </div>
+                <div className={`flex items-center gap-1.5 ${colorConfig.text} font-semibold`}>
+                  <LevelIcon className="w-4 h-4" />
+                  Level {level}
                 </div>
               </div>
             </div>
+
+            {/* Metrics with Premium Styling */}
+            <div className="flex items-center gap-8 px-6 border-l-2 border-gray-200/50 hidden sm:flex">
+              <div className="text-center">
+                <div className={`text-xl font-bold ${colorConfig.text}`}>{node.totalReferrals || node.children?.length || 0}</div>
+                <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Direct Refs</div>
+              </div>
+              <div className="text-center">
+                <div className="text-xl font-bold text-amber-600">{node.coupons || node.couponsEarned || 0}</div>
+                <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Coupons</div>
+              </div>
+            </div>
+
+            {/* Premium Expand Toggle */}
+            {hasChildren && (
+              <div className={`p-2 rounded-xl ${colorConfig.bg} ${colorConfig.border} border`}>
+                {expanded ? <ChevronDown className={`w-5 h-5 ${colorConfig.text}`} /> : <ChevronRight className={`w-5 h-5 ${colorConfig.text}`} />}
+              </div>
+            )}
           </div>
-        )}
+
+          {/* Expanded Details with Premium Styling */}
+          {expanded && (
+            <div className={`border-t-2 ${colorConfig.border} px-6 py-4 text-sm grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 bg-white/80 backdrop-blur-sm`}>
+              <div>
+                <span className="block font-bold text-gray-400 uppercase tracking-wider text-[10px] mb-1.5">Email</span>
+                <span className="text-gray-900 font-medium">{node.email || 'N/A'}</span>
+              </div>
+              <div>
+                <span className="block font-bold text-gray-400 uppercase tracking-wider text-[10px] mb-1.5">Joined</span>
+                <span className="text-gray-900 flex items-center gap-1.5 font-medium">
+                  <Calendar className="w-4 h-4 text-gray-400" /> {formatDate(node.signupDate)}
+                </span>
+              </div>
+              <div>
+                <span className="block font-bold text-gray-400 uppercase tracking-wider text-[10px] mb-1.5">User ID</span>
+                <span className="font-mono text-gray-900 font-bold">#{node.id}</span>
+              </div>
+              {/* View This User's Tree Button */}
+              <div className="sm:col-span-4 pt-3 border-t border-gray-200 mt-2">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onViewTree && onViewTree(node.phone);
+                  }}
+                  className={`px-5 py-2.5 text-white text-xs font-bold rounded-xl hover:opacity-90 transition-all flex items-center gap-2 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 bg-gradient-to-r ${colorConfig.gradient}`}
+                >
+                  <Layers className="w-4 h-4" />
+                  View Their 6-Level Tree
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* Children */}
+      {/* Children Recursion */}
       {expanded && hasChildren && (
-        <div className="border-l-2 border-gray-200 ml-5 pl-0">
-          {node.children.map((child) => (
+        <div className="relative">
+          {node.children.map((child, index) => (
             <ReferralNode
               key={child.id}
               node={child}
               depth={depth + 1}
-              defaultExpanded={depth < 1}
+              isLast={index === node.children.length - 1}
+              defaultExpanded={false}
+              onViewTree={onViewTree}
             />
           ))}
         </div>
@@ -173,10 +231,9 @@ const AdminReferrals = () => {
   const [phone, setPhone] = useState('');
   const [trees, setTrees] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
   const [stats, setStats] = useState({ totalRoots: 0, totalUsers: 0 });
+  const { showNotification } = useNotification();
 
-  // Count all users in trees recursively
   const countUsers = (nodes) => {
     let count = 0;
     for (const node of nodes) {
@@ -190,17 +247,19 @@ const AdminReferrals = () => {
 
   const fetchFullTree = async () => {
     setLoading(true);
-    setError('');
     try {
       const res = await adminAPI.getFullReferralTree();
       const data = res.data?.data || [];
-      setTrees(data);
+      // Filter out Admin users - Admin is platform owner, not a referral participant
+      const filteredData = data.filter(node => node.role !== 'ADMIN');
+      setTrees(filteredData);
       setStats({
-        totalRoots: data.length,
-        totalUsers: countUsers(data)
+        totalRoots: filteredData.length,
+        totalUsers: countUsers(filteredData)
       });
     } catch (e) {
-      setError(e.response?.data?.message || 'Failed to load referral tree');
+      console.error(e);
+      showNotification('error', 'Failed to load referral tree');
     } finally {
       setLoading(false);
     }
@@ -211,10 +270,19 @@ const AdminReferrals = () => {
       fetchFullTree();
       return;
     }
+    await searchByPhoneValue(phone.trim());
+  };
+
+  // Direct search function that takes phone as parameter (for button click handlers)
+  const searchByPhoneValue = async (phoneValue) => {
+    if (!phoneValue) {
+      fetchFullTree();
+      return;
+    }
+    setPhone(phoneValue);
     setLoading(true);
-    setError('');
     try {
-      const res = await adminAPI.getReferralTree({ phone: phone.trim() });
+      const res = await adminAPI.getReferralTree({ phone: phoneValue });
       const data = res.data?.data;
       if (data) {
         setTrees([data]);
@@ -222,12 +290,14 @@ const AdminReferrals = () => {
           totalRoots: 1,
           totalUsers: countUsers([data])
         });
+        showNotification('success', `Viewing tree for ${data.fullName || phoneValue}`);
       } else {
         setTrees([]);
-        setError('No user found with that phone number');
+        showNotification('info', 'No user found with that phone number');
       }
     } catch (e) {
-      setError(e.response?.data?.message || 'Failed to search referral tree');
+      console.error(e);
+      showNotification('error', 'Failed to search referral tree');
     } finally {
       setLoading(false);
     }
@@ -238,115 +308,111 @@ const AdminReferrals = () => {
   }, []);
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
+    <div className="space-y-8 max-w-7xl mx-auto">
       {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Referral Tree</h1>
-        <p className="text-gray-500">View and manage the complete referral hierarchy (up to 6 levels deep)</p>
-      </div>
-
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-4 text-white shadow-lg">
-          <div className="flex items-center gap-3">
-            <Users className="h-8 w-8 opacity-80" />
-            <div>
-              <div className="text-2xl font-bold">{stats.totalUsers}</div>
-              <div className="text-blue-100 text-sm">Total Users in Tree</div>
-            </div>
-          </div>
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-heading font-light text-gray-900">Referral Network</h1>
+          <p className="text-gray-500 mt-1 font-light">Visualize and manage the multi-level referral system</p>
         </div>
-        <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-xl p-4 text-white shadow-lg">
-          <div className="flex items-center gap-3">
-            <User className="h-8 w-8 opacity-80" />
-            <div>
-              <div className="text-2xl font-bold">{stats.totalRoots}</div>
-              <div className="text-green-100 text-sm">Root Users (No Referrer)</div>
-            </div>
-          </div>
-        </div>
-        <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl p-4 text-white shadow-lg">
-          <div className="flex items-center gap-3">
-            <Award className="h-8 w-8 opacity-80" />
-            <div>
-              <div className="text-2xl font-bold">6</div>
-              <div className="text-purple-100 text-sm">Max Referral Levels</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Search Bar */}
-      <div className="flex items-center gap-3 mb-6 flex-wrap">
-        <div className="relative flex-1 max-w-md">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <Phone className="h-5 w-5 text-gray-400" />
-          </div>
-          <input
-            type="tel"
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && searchByPhone()}
-            placeholder="Search by phone number..."
-            className="appearance-none block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm"
-          />
-        </div>
-        <Button
-          onClick={searchByPhone}
-          className="flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-sm"
-        >
-          <Search className="h-4 w-4" /> Search
-        </Button>
-        <Button
+        <button
           onClick={fetchFullTree}
-          className="flex items-center gap-2 px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl shadow-sm"
+          className="bg-white border border-gray-200 text-gray-700 px-4 py-2.5 rounded-xl flex items-center gap-2 hover:bg-gray-50 transition-colors shadow-sm font-medium text-sm"
         >
-          <RefreshCw className="h-4 w-4" /> Show All
-        </Button>
+          <RefreshCw className="h-4 w-4" /> Refresh Network
+        </button>
       </div>
 
-      {/* Level Legend */}
-      <div className="flex items-center gap-2 mb-4 flex-wrap text-sm">
-        <span className="text-gray-500">Level Colors:</span>
-        {levelColors.map((color, i) => (
-          <span
-            key={i}
-            className={`px-3 py-1 rounded-full border-l-4 ${color} text-gray-700 text-xs font-medium`}
-          >
-            Level {i}
-          </span>
+      {/* Stats Overview */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {[
+          { label: 'Total Network Users', value: stats.totalUsers, icon: Users, color: 'text-blue-600', bg: 'bg-blue-50' },
+          { label: 'Root Nodes', value: stats.totalRoots, icon: Layers, color: 'text-purple-600', bg: 'bg-purple-50' },
+          { label: 'Max Depth', value: '6 Levels', icon: Award, color: 'text-amber-600', bg: 'bg-amber-50' }
+        ].map((stat, i) => (
+          <div key={i} className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+            <div className="flex items-start justify-between">
+              <div>
+                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">{stat.label}</p>
+                <p className="text-3xl font-heading font-bold text-gray-900 mt-2">{stat.value}</p>
+              </div>
+              <div className={`p-3 rounded-xl ${stat.bg} ${stat.color}`}>
+                <stat.icon className="h-5 w-5" />
+              </div>
+            </div>
+          </div>
         ))}
       </div>
 
-      {/* Tree Content */}
-      {loading ? (
-        <div className="flex items-center justify-center py-20">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-          <span className="ml-3 text-gray-600">Loading referral tree...</span>
+      {/* Level Color Legend */}
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+        <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-4">Level Color Guide</h3>
+        <div className="flex flex-wrap gap-3">
+          {Object.entries(levelColors).map(([level, config]) => {
+            const Icon = config.icon;
+            return (
+              <div
+                key={level}
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl border-2 ${config.bg} ${config.border} transition-all hover:scale-105`}
+              >
+                <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-white shadow-md bg-gradient-to-br ${config.gradient}`}>
+                  <Icon className="w-4 h-4" />
+                </div>
+                <span className={`text-sm font-bold ${config.text}`}>{config.label}</span>
+              </div>
+            );
+          })}
         </div>
-      ) : error ? (
-        <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-center">
-          <div className="text-red-600 font-medium">{error}</div>
-          <Button
-            onClick={fetchFullTree}
-            className="mt-4 px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200"
-          >
-            Try Again
-          </Button>
+      </div>
+
+      {/* Main Content */}
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden min-h-[500px]">
+
+        {/* Toolbar */}
+        <div className="p-6 border-b border-gray-100 bg-gray-50/50">
+          <div className="relative max-w-md">
+            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+            <input
+              type="text"
+              placeholder="Search network by phone number..."
+              className="w-full pl-11 pr-4 py-3 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-black/5 focus:border-black transition-all text-sm shadow-sm"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && searchByPhone()}
+            />
+          </div>
         </div>
-      ) : trees.length > 0 ? (
-        <div className="space-y-4">
-          {trees.map((tree) => (
-            <ReferralNode key={tree.id} node={tree} depth={0} defaultExpanded={true} />
-          ))}
+
+        {/* Tree Visualization */}
+        <div className="p-8 overflow-x-auto">
+          {loading ? (
+            <div className="flex flex-col items-center justify-center h-64">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-black mb-4"></div>
+              <p className="text-gray-500 text-sm">Loading network topology...</p>
+            </div>
+          ) : trees.length > 0 ? (
+            <div className="min-w-[800px]">
+              {trees.map((tree, index) => (
+                <ReferralNode
+                  key={tree.id}
+                  node={tree}
+                  depth={0}
+                  isLast={index === trees.length - 1}
+                  onViewTree={(phoneValue) => searchByPhoneValue(phoneValue)}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-20">
+              <div className="bg-gray-50 p-4 rounded-full shadow-sm inline-block mb-4">
+                <Users className="h-8 w-8 text-gray-300" />
+              </div>
+              <h3 className="text-gray-900 font-medium mb-1">No network data found</h3>
+              <p className="text-sm text-gray-500">The referral network is currently empty or no matches found.</p>
+            </div>
+          )}
         </div>
-      ) : (
-        <div className="bg-gray-50 border border-gray-200 rounded-xl p-12 text-center">
-          <Users className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-          <div className="text-gray-600 font-medium text-lg">No referral data found</div>
-          <p className="text-gray-400 mt-2">Users will appear here once they register with referral codes.</p>
-        </div>
-      )}
+      </div>
     </div>
   );
 };

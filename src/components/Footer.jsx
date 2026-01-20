@@ -1,36 +1,34 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Facebook, Instagram, Mail, Phone, MapPin, CreditCard, Truck, Shield, RefreshCw } from 'lucide-react';
+import { Facebook, Instagram, Mail, Phone, MapPin, CreditCard, Truck, Shield, RefreshCw, ArrowRight, Twitter, Youtube } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const footerLinks = [
   {
-    label: 'Shop',
+    label: 'Collection',
     links: [
-      { title: 'Trending Now', href: '/trending' },
+      { title: 'New Arrivals', href: '/trending' },
+      { title: 'Best Sellers', href: '/top-products' },
       { title: 'Recommended', href: '/interest-products' },
+      { title: 'Mens Fashion', href: '/categories/mens-fashion' },
     ],
   },
   {
-    label: 'Customer Service',
+    label: 'Support',
     links: [
+      { title: 'Track Order', href: '/orders' },
+      { title: 'Shipping Policy', href: '/shipping-policy' },
+      { title: 'Returns & Exchanges', href: '/return-policy' },
       { title: 'Chat on WhatsApp', href: 'https://wa.me/919179193970', external: true },
     ],
   },
   {
-    label: 'About Us',
+    label: 'Company',
     links: [
       { title: 'Our Story', href: '/about' },
-    ],
-  },
-  {
-    label: 'Legal',
-    links: [
+      { title: 'Terms of Service', href: '/terms' },
       { title: 'Privacy Policy', href: '/privacy-policy' },
-      { title: 'Terms & Conditions', href: '/terms' },
       { title: 'Refund Policy', href: '/refund-policy' },
-      { title: 'Return Policy', href: '/return-policy' },
-      { title: 'Shipping Policy', href: '/shipping-policy' },
     ],
   },
 ];
@@ -42,28 +40,28 @@ const socialLinks = [
 ];
 
 const features = [
-  { icon: RefreshCw, title: 'Easy Returns', description: '30-day return policy' },
-  { icon: Shield, title: 'Secure Payment', description: '100% secure payment' },
-  { icon: CreditCard, title: 'Flexible Payment', description: 'Multiple payment options' },
+  { icon: Shield, title: 'Secure Payment', description: 'Encrypted and safe transactions' },
+  { icon: CreditCard, title: 'Flexible Payment', description: 'UPI, Cards, and Net Banking' },
+  { icon: Truck, title: 'Fast Shipping', description: 'Express delivery across India' },
 ];
 
 export function Footer() {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="bg-gray-50 border-t border-gray-200 mt-16">
-      {/* Features */}
-      <div className="bg-white py-8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+    <footer className="bg-black text-white border-t border-white/10">
+      {/* Features Banner - Minimalist */}
+      <div className="border-b border-white/10">
+        <div className="max-w-[1440px] mx-auto px-6 lg:px-12 py-12">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {features.map((feature, index) => (
-              <div key={index} className="flex items-center space-x-4">
-                <div className="flex-shrink-0 bg-blue-50 p-3 rounded-full">
-                  <feature.icon className="h-6 w-6 text-blue-600" />
+              <div key={index} className="flex items-start space-x-4 group">
+                <div className="flex-shrink-0 p-2 border border-white/20 rounded-full group-hover:border-white transition-colors duration-300">
+                  <feature.icon className="h-5 w-5 text-gray-400 group-hover:text-white transition-colors" strokeWidth={1.5} />
                 </div>
                 <div>
-                  <h3 className="text-sm font-medium text-gray-900">{feature.title}</h3>
-                  <p className="text-xs text-gray-500">{feature.description}</p>
+                  <h3 className="text-sm font-bold uppercase tracking-wider text-white mb-1">{feature.title}</h3>
+                  <p className="text-xs text-gray-500 group-hover:text-gray-400 transition-colors leading-relaxed">{feature.description}</p>
                 </div>
               </div>
             ))}
@@ -71,111 +69,94 @@ export function Footer() {
         </div>
       </div>
 
-      {/* Main Footer */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10">
-          {/* Brand and description */}
-          <div className="lg:col-span-2 space-y-6">
-            <Link to="/" className="flex items-center space-x-2">
-              <span className="text-2xl font-bold text-gray-900">KuberFashion</span>
+      {/* Main Footer Content */}
+      <div className="max-w-[1440px] mx-auto px-6 lg:px-12 py-20">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 lg:gap-8">
+
+          {/* Brand Column */}
+          <div className="lg:col-span-4 space-y-8">
+            <Link to="/" className="inline-block">
+              <span className="text-2xl font-black uppercase tracking-[0.15em] text-white">
+                Kuber Fashion
+              </span>
             </Link>
-            <p className="text-gray-500 text-sm">
-              Your one-stop destination for the latest fashion trends. We offer high-quality clothing, accessories, and more for the modern individual.
+            <p className="text-gray-400 text-sm leading-7 max-w-sm font-light">
+              Your destination for premium fashion. Combining modern aesthetics with timeless comfort. Experience the new era of style.
             </p>
 
-            {/* Contact Info */}
-            <div className="space-y-2">
-              <div className="flex items-center space-x-3">
-                <Mail className="h-5 w-5 text-gray-400" />
-                <a href="mailto:kuberfashionsvyasnagar@gmail.com" className="text-sm text-gray-600 hover:text-gray-900">
-                  kuberfashionsvyasnagar@gmail.com
-                </a>
-              </div>
-              <div className="flex items-center space-x-3">
-                <Phone className="h-5 w-5 text-gray-400" />
-                <a href="tel:+919179193970" className="text-sm text-gray-600 hover:text-gray-900">
-                  +91 9179193970
-                </a>
-              </div>
-              <div className="flex items-start space-x-3">
-                <MapPin className="h-5 w-5 text-gray-400 mt-0.5" />
-                <a
-                  href="https://maps.app.goo.gl/SXC5gYaQsDkqPbZLA?g_st=aw"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm text-gray-600 hover:text-gray-900"
-                >
-                  C/o Dulaurin Sahi Nandeli, Chawok Vyasnagar Nariyara, Pamgarh, Janjgir-Champa, Pamgarh, Chhattisgarh, India, 495554
-                </a>
-              </div>
+            <div className="space-y-4 pt-2">
+              <a href="mailto:kuberfashionsvyasnagar@gmail.com" className="flex items-center space-x-3 text-sm text-gray-400 hover:text-white transition-colors group">
+                <Mail className="h-4 w-4 text-gray-500 group-hover:text-white transition-colors" />
+                <span className="border-b border-transparent group-hover:border-white transition-all">kuberfashionsvyasnagar@gmail.com</span>
+              </a>
+              <a href="tel:+919179193970" className="flex items-center space-x-3 text-sm text-gray-400 hover:text-white transition-colors group">
+                <Phone className="h-4 w-4 text-gray-500 group-hover:text-white transition-colors" />
+                <span className="border-b border-transparent group-hover:border-white transition-all">+91 9179193970</span>
+              </a>
+              <a href="https://maps.app.goo.gl/SXC5gYaQsDkqPbZLA?g_st=aw" target="_blank" rel="noopener noreferrer" className="flex items-start space-x-3 text-sm text-gray-400 hover:text-white transition-colors group">
+                <MapPin className="h-4 w-4 text-gray-500 group-hover:text-white transition-colors mt-1" />
+                <span className="border-b border-transparent group-hover:border-white transition-all leading-relaxed">Nandeli, Pamgarh, Chhattisgarh, India</span>
+              </a>
             </div>
 
-            {/* Social Links */}
             <div className="flex space-x-4 pt-2">
               {socialLinks.map((social, index) => (
                 <a
                   key={index}
                   href={social.href}
-                  className="text-gray-400 hover:text-gray-500"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-10 h-10 flex items-center justify-center border border-white/20 rounded-full hover:bg-white hover:text-black hover:border-white transition-all duration-300"
                   aria-label={social.label}
                 >
-                  <span className="sr-only">{social.label}</span>
-                  <social.icon className="h-5 w-5" />
+                  <social.icon className="h-4 w-4" strokeWidth={1.5} />
                 </a>
               ))}
             </div>
           </div>
 
-          {/* Footer Links */}
-          {footerLinks.map((section, index) => (
-            <div key={index}>
-              <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wider">
-                {section.label}
-              </h3>
-              <ul className="mt-4 space-y-3">
-                {section.links.map((link, linkIndex) => (
-                  <li key={linkIndex}>
-                    {link.external ? (
-                      <a
-                        href={link.href}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-sm text-gray-500 hover:text-gray-900 transition-colors duration-200"
-                      >
-                        {link.title}
-                      </a>
-                    ) : (
-                      <Link
-                        to={link.href}
-                        className="text-sm text-gray-500 hover:text-gray-900 transition-colors duration-200"
-                      >
-                        {link.title}
-                      </Link>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
+          {/* Links Columns */}
+          <div className="lg:col-span-8 grid grid-cols-2 md:grid-cols-3 gap-12 lg:pl-12">
+            {footerLinks.map((section, index) => (
+              <div key={index}>
+                <h3 className="text-xs font-bold text-white uppercase tracking-[0.2em] mb-8">
+                  {section.label}
+                </h3>
+                <ul className="space-y-4">
+                  {section.links.map((link, linkIndex) => (
+                    <li key={linkIndex}>
+                      {link.external ? (
+                        <a
+                          href={link.href}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-sm text-gray-400 hover:text-white transition-colors duration-300 flex items-center group w-fit"
+                        >
+                          <span className="border-b border-transparent group-hover:border-white transition-all pb-0.5">{link.title}</span>
+                          <ArrowRight className="h-3 w-3 ml-2 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300" />
+                        </a>
+                      ) : (
+                        <Link
+                          to={link.href}
+                          className="text-sm text-gray-400 hover:text-white transition-colors duration-300 flex items-center group w-fit"
+                        >
+                          <span className="border-b border-transparent group-hover:border-white transition-all pb-0.5">{link.title}</span>
+                        </Link>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* Bottom Bar */}
-        <div className="mt-12 pt-8 border-t border-gray-200">
-          <div className="flex flex-col md:flex-row justify-between items-center">
-            <p className="text-sm text-gray-500">
-              &copy; {currentYear} KuberFashion. All rights reserved.
-            </p>
-            <div className="flex space-x-6 mt-4 md:mt-0">
-              <Link to="/privacy-policy" className="text-sm text-gray-500 hover:text-gray-700">
-                Privacy Policy
-              </Link>
-              <Link to="/terms" className="text-sm text-gray-500 hover:text-gray-700">
-                Terms & Conditions
-              </Link>
-              <Link to="/refund-policy" className="text-sm text-gray-500 hover:text-gray-700">
-                Refund Policy
-              </Link>
-            </div>
+        <div className="mt-20 pt-8 border-t border-white/10 flex flex-col md:flex-row justify-between items-center text-xs text-gray-600 uppercase tracking-wider">
+          <p>&copy; {currentYear} Kuber Fashion. All rights reserved.</p>
+          <div className="flex space-x-8 mt-4 md:mt-0">
+            <Link to="/privacy-policy" className="hover:text-white transition-colors">Privacy Policy</Link>
+            <Link to="/terms" className="hover:text-white transition-colors">Terms of Service</Link>
           </div>
         </div>
       </div>

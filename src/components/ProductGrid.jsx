@@ -66,7 +66,7 @@ const ProductGrid = ({ products, title = "Featured Products", showTitle = true }
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: "-50px" }}
-          className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4 md:gap-6"
+          className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-x-4 gap-y-8 sm:gap-x-10 sm:gap-y-16"
         >
           {products.map((product) => (
             <motion.div key={product.id} variants={itemVariants} className="h-full">

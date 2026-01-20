@@ -12,6 +12,7 @@ import SignupPage from './pages/SignupPage';
 import CartPage from './user/pages/CartPage';
 import WishlistPage from './user/pages/WishlistPage';
 import OrdersPage from './user/pages/OrdersPage';
+import OrderDetailsPage from './user/pages/OrderDetailsPage';
 import CheckoutPage from './user/pages/CheckoutPage';
 import PaymentStatusPage from './user/pages/PaymentStatusPage';
 import TrendingPage from './user/pages/TrendingPage';
@@ -39,7 +40,7 @@ import AdminReferrals from './admin/pages/Referrals';
 import UserProfilePage from './user/pages/Profile';
 import AdminProfilePage from './admin/pages/Profile';
 import AuthPage from './pages/AuthPage';
-import UserDashboard from './user/pages/UserDashboard';
+
 // Import test utilities for development
 import '../src/utils/createTestAdmin.js';
 
@@ -76,12 +77,13 @@ function App() {
 
                 {/* Protected User Routes */}
                 <Route element={<RequireAuth />}>
-                  <Route path="/user" element={<UserDashboard />} />
-                  <Route path="/dashboard" element={<UserDashboard />} />
+                  <Route path="/user" element={<Navigate to="/" replace />} />
+                  <Route path="/dashboard" element={<Navigate to="/" replace />} />
                   <Route path="/cart" element={<CartPage />} />
                   <Route path="/wishlist" element={<WishlistPage />} />
                   <Route path="/referral" element={<Referral />} />
                   <Route path="/orders" element={<OrdersPage />} />
+                  <Route path="/orders/:orderId" element={<OrderDetailsPage />} />
                   <Route path="/checkout" element={<CheckoutPage />} />
                   <Route path="/payment/status" element={<PaymentStatusPage />} />
                   <Route path="/profile" element={<UserProfilePage />} />

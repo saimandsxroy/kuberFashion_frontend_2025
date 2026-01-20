@@ -3,10 +3,12 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { CheckCircle, XCircle, Clock, ArrowRight } from 'lucide-react';
 import { Button } from '../../components/Button';
 import { paymentsAPI } from '../../services/api';
+import { useCart } from '../../context/CartContext';
 
 const PaymentStatusPage = () => {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
+    const { clearCart } = useCart();
     const [status, setStatus] = useState('checking'); // checking, success, failed, pending
     const [orderInfo, setOrderInfo] = useState(null);
 
@@ -41,6 +43,7 @@ const PaymentStatusPage = () => {
             await paymentsAPI.confirm(merchantOrderId);
             setStatus('success');
             localStorage.removeItem('pendingPayment');
+            clearCart(); // Clear cart after successful payment
 
             // Get order info
             const statusResponse = await paymentsAPI.getStatus(merchantOrderId);
@@ -63,6 +66,7 @@ const PaymentStatusPage = () => {
                 if (data.status === 'COMPLETED') {
                     setStatus('success');
                     localStorage.removeItem('pendingPayment');
+                    clearCart(); // Clear cart after successful payment
                 } else if (data.status === 'FAILED') {
                     setStatus('failed');
                     localStorage.removeItem('pendingPayment');

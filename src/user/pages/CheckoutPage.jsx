@@ -1,19 +1,45 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, MapPin, Plus, CreditCard, Truck, Check } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ArrowLeft, MapPin, Plus, CreditCard, Truck, Check, ShoppingBag, X, ChevronRight, Shield, Lock, Sparkles, Users } from 'lucide-react';
 import { Button } from '../../components/Button';
 import { useCart } from '../../context/CartContext';
-import { addressesAPI, ordersAPI, paymentsAPI } from '../../services/api';
+import { useAuth } from '../../hooks/useAuth';
+import { addressesAPI, ordersAPI, paymentsAPI, referralAPI } from '../../services/api';
+import { cn } from '../../lib/utils';
+
+const PremiumInput = ({ label, ...props }) => (
+    <div className="space-y-1.5">
+        {label && <label className="text-xs font-bold uppercase tracking-widest text-gray-500">{label}</label>}
+        <input
+            {...props}
+            className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-black transition-all"
+        />
+    </div>
+);
 
 const CheckoutPage = () => {
     const navigate = useNavigate();
     const { cart, clearCart } = useCart();
+    const { user } = useAuth();
     const [addresses, setAddresses] = useState([]);
     const [selectedAddressId, setSelectedAddressId] = useState(null);
     const [paymentMethod, setPaymentMethod] = useState('PHONEPE');
     const [loading, setLoading] = useState(true);
     const [processing, setProcessing] = useState(false);
     const [showAddressForm, setShowAddressForm] = useState(false);
+    const [referralCode, setReferralCode] = useState('');
+    const [isMember, setIsMember] = useState(true); // Assume member until checked
+    const [purchaseMode, setPurchaseMode] = useState('ONLINE'); // 'ONLINE' or 'OFFLINE' for KVision
+
+    // Verification state
+    const [verifying, setVerifying] = useState(false);
+    const [verificationState, setVerificationState] = useState({
+        valid: false,
+        message: '',
+        name: ''
+    });
+
     const [newAddress, setNewAddress] = useState({
         label: 'Home',
         firstName: '',
@@ -27,9 +53,33 @@ const CheckoutPage = () => {
         country: 'India'
     });
 
+    // Stable callback for address form fields - prevents focus loss
+    const handleAddressChange = useCallback((field) => (e) => {
+        const value = e.target.value;
+        setNewAddress(prev => ({ ...prev, [field]: value }));
+    }, []);
+
     useEffect(() => {
         fetchAddresses();
+        checkMembership();
     }, []);
+
+    // Check if cart has KVision products
+    const hasKvisionProducts = cart.items.some(item =>
+        item.category?.toLowerCase() === 'kvision' ||
+        item.categorySlug?.toLowerCase() === 'kvision' ||
+        item.category?.slug?.toLowerCase() === 'kvision'
+    );
+
+    const checkMembership = async () => {
+        try {
+            const response = await referralAPI.getMembership();
+            setIsMember(response.data?.data?.isMember || false);
+        } catch (error) {
+            // If error, assume not a member for KVision products
+            setIsMember(false);
+        }
+    };
 
     const fetchAddresses = async () => {
         try {
@@ -38,7 +88,6 @@ const CheckoutPage = () => {
             if (response.data?.success) {
                 const addrs = response.data.data || [];
                 setAddresses(addrs);
-                // Auto-select default address
                 const defaultAddr = addrs.find(a => a.default || a.isDefault);
                 if (defaultAddr) {
                     setSelectedAddressId(defaultAddr.id);
@@ -63,16 +112,9 @@ const CheckoutPage = () => {
                 setSelectedAddressId(created.id);
                 setShowAddressForm(false);
                 setNewAddress({
-                    label: 'Home',
-                    firstName: '',
-                    lastName: '',
-                    phone: '',
-                    addressLine1: '',
-                    addressLine2: '',
-                    city: '',
-                    state: '',
-                    postalCode: '',
-                    country: 'India'
+                    label: 'Home', firstName: '', lastName: '', phone: '',
+                    addressLine1: '', addressLine2: '', city: '', state: '',
+                    postalCode: '', country: 'India'
                 });
             }
         } catch (error) {
@@ -86,52 +128,50 @@ const CheckoutPage = () => {
             alert('Please select a shipping address');
             return;
         }
-
         if (cart.items.length === 0) {
             alert('Your cart is empty');
             return;
         }
 
-        setProcessing(true);
+        // Strict KVision Purchase Validation
+        if (hasKvisionProducts && !isMember) {
+            if (!verificationState.valid) {
+                alert("Please enter and verify a valid referral code to purchase KVision products and join the membership.");
+                return;
+            }
+        }
 
+        setProcessing(true);
         try {
-            // Prepare cart items for backend
             const cartItems = cart.items.map(item => ({
                 productId: item.productId || item.id,
                 quantity: item.quantity,
                 selectedSize: item.size || null,
                 selectedColor: item.color || null
             }));
-
-            // Create order
             const orderResponse = await ordersAPI.createOrder({
                 cartItems,
                 addressId: selectedAddressId,
-                paymentMethod
+                paymentMethod,
+                referralCode: referralCode || null,
+                purchaseMode: hasKvisionProducts ? purchaseMode : 'ONLINE'
             });
-
             if (orderResponse.data?.success) {
                 const order = orderResponse.data.data;
-
                 if (paymentMethod === 'PHONEPE') {
-                    // Initiate PhonePe payment
                     const paymentResponse = await paymentsAPI.initiate(order.id);
                     if (paymentResponse.data?.success) {
                         const { redirectUrl, merchantOrderId } = paymentResponse.data.data;
-                        // Store merchantOrderId for status check
                         localStorage.setItem('pendingPayment', JSON.stringify({
                             merchantOrderId,
                             orderId: order.id
                         }));
-                        // Clear cart before redirect
-                        clearCart();
-                        // Redirect to PhonePe or simulated payment page
+                        // Cart will be cleared after successful payment confirmation in PaymentStatusPage
                         window.location.href = redirectUrl;
                     } else {
                         alert('Payment initiation failed. Please try again.');
                     }
                 } else {
-                    // Cash on Delivery - order is placed directly
                     clearCart();
                     navigate('/orders', {
                         state: {
@@ -145,332 +185,485 @@ const CheckoutPage = () => {
             }
         } catch (error) {
             console.error('Checkout error:', error);
-            alert('Checkout failed. Please try again.');
+            const errorMessage = error.response?.data?.message || error.message || 'Checkout failed. Please try again.';
+            alert(errorMessage);
         } finally {
             setProcessing(false);
         }
     };
 
     const subtotal = cart.totalAmount || 0;
-    const shipping = subtotal >= 500 ? 0 : 50;
-    const tax = subtotal * 0.05;
-    const total = subtotal + shipping + tax;
+    // Tiered shipping: <500: ₹79, 500-999: ₹59, >999: ₹49
+    // For KVision OFFLINE purchases, shipping is FREE
+    const isOfflineKvision = hasKvisionProducts && purchaseMode === 'OFFLINE';
+    const shipping = isOfflineKvision ? 0 : (subtotal > 999 ? 49 : (subtotal >= 500 ? 59 : 79));
+    const tax = 0; // No GST
+    const total = subtotal + shipping;
+
+    // --- Premium Input Component Removed (Moved outside) ---
 
     if (cart.items.length === 0) {
         return (
-            <div className="min-h-screen bg-gray-50 flex flex-col justify-center items-center py-12">
-                <h2 className="text-2xl font-bold text-gray-900 mb-4">Your cart is empty</h2>
-                <Button onClick={() => navigate('/')} className="bg-[#047BD2] text-white">
-                    Continue Shopping
-                </Button>
+            <div className="min-h-screen bg-white flex flex-col justify-center items-center py-12 px-4">
+                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center">
+                    <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <ShoppingBag className="w-10 h-10 text-gray-400" />
+                    </div>
+                    <h2 className="text-3xl font-black text-black uppercase tracking-tight mb-2">Your Cart is Empty</h2>
+                    <p className="text-gray-500 mb-8">Add some items to continue to checkout.</p>
+                    <Button onClick={() => navigate('/')} className="bg-black text-white hover:bg-gray-800 px-8 py-3 rounded-full font-bold uppercase tracking-widest text-sm">
+                        Continue Shopping
+                    </Button>
+                </motion.div>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen bg-white">
             {/* Header */}
-            <div className="bg-white shadow-sm">
+            <div className="border-b border-gray-100">
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6">
-                    <div className="flex items-center space-x-4">
+                    <div className="flex items-center justify-between">
                         <Button
                             onClick={() => navigate('/cart')}
                             variant="ghost"
-                            className="flex items-center space-x-2 text-[#047BD2]"
+                            className="group flex items-center space-x-2 text-gray-500 hover:text-black transition-colors -ml-2"
                         >
-                            <ArrowLeft className="h-4 w-4" />
-                            <span>Back to Cart</span>
+                            <ArrowLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform" />
+                            <span className="text-xs font-bold uppercase tracking-widest">Back</span>
                         </Button>
-                        <h1 className="text-2xl font-bold text-gray-900">Checkout</h1>
+                        <h1 className="text-2xl sm:text-3xl font-black text-black uppercase tracking-tighter">Checkout</h1>
+                        <div className="w-20" /> {/* Spacer for centering */}
                     </div>
                 </div>
             </div>
 
-            <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
-                <div className="flex flex-col lg:flex-row gap-8">
+            <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10">
+                <div className="flex flex-col lg:flex-row gap-10 lg:gap-16">
                     {/* Left Column - Address & Payment */}
-                    <div className="flex-1 space-y-6">
-                        {/* Shipping Address */}
-                        <div className="bg-white rounded-lg shadow-sm p-6">
-                            <div className="flex items-center justify-between mb-4">
-                                <h2 className="text-lg font-semibold flex items-center">
-                                    <MapPin className="h-5 w-5 mr-2 text-[#047BD2]" />
+                    <div className="flex-1 space-y-10">
+
+                        {/* --- Shipping Address Section --- */}
+                        <motion.section initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+                            <div className="flex items-center justify-between mb-6">
+                                <h2 className="text-lg font-black uppercase tracking-tight flex items-center">
+                                    <span className="w-8 h-8 bg-black text-white rounded-full flex items-center justify-center text-sm mr-3">1</span>
                                     Shipping Address
                                 </h2>
-                                <Button
-                                    variant="outline"
-                                    size="sm"
+                                <button
                                     onClick={() => setShowAddressForm(!showAddressForm)}
-                                    className="flex items-center"
+                                    className="text-xs font-bold uppercase tracking-widest text-gray-500 hover:text-black flex items-center transition-colors"
                                 >
                                     <Plus className="h-4 w-4 mr-1" />
                                     Add New
-                                </Button>
+                                </button>
                             </div>
 
                             {loading ? (
-                                <div className="text-center py-4">Loading addresses...</div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    {[1, 2].map(i => (
+                                        <div key={i} className="animate-pulse p-5 border border-gray-200 rounded-xl">
+                                            <div className="h-4 bg-gray-200 rounded w-1/3 mb-3"></div>
+                                            <div className="h-3 bg-gray-200 rounded w-2/3 mb-2"></div>
+                                            <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                                        </div>
+                                    ))}
+                                </div>
                             ) : (
                                 <>
-                                    {/* Address Selection */}
                                     {addresses.length > 0 ? (
-                                        <div className="space-y-3">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             {addresses.map((addr) => (
-                                                <div
+                                                <motion.div
                                                     key={addr.id}
+                                                    whileHover={{ scale: 1.01 }}
+                                                    whileTap={{ scale: 0.99 }}
                                                     onClick={() => setSelectedAddressId(addr.id)}
-                                                    className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${selectedAddressId === addr.id
-                                                            ? 'border-[#047BD2] bg-blue-50'
+                                                    className={cn(
+                                                        "relative p-5 border-2 rounded-xl cursor-pointer transition-all duration-300",
+                                                        selectedAddressId === addr.id
+                                                            ? 'border-black bg-gray-50 shadow-sm'
                                                             : 'border-gray-200 hover:border-gray-300'
-                                                        }`}
+                                                    )}
                                                 >
-                                                    <div className="flex items-start justify-between">
-                                                        <div>
-                                                            <div className="flex items-center gap-2">
-                                                                <span className="font-medium">{addr.firstName} {addr.lastName}</span>
-                                                                <span className="text-xs bg-gray-100 px-2 py-1 rounded">
-                                                                    {addr.label}
-                                                                </span>
-                                                                {(addr.default || addr.isDefault) && (
-                                                                    <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">
-                                                                        Default
-                                                                    </span>
-                                                                )}
-                                                            </div>
-                                                            <p className="text-sm text-gray-600 mt-1">{addr.phone}</p>
-                                                            <p className="text-sm text-gray-600">
-                                                                {addr.addressLine1}
-                                                                {addr.addressLine2 && `, ${addr.addressLine2}`}
-                                                            </p>
-                                                            <p className="text-sm text-gray-600">
-                                                                {addr.city}, {addr.state} - {addr.postalCode}
-                                                            </p>
+                                                    {selectedAddressId === addr.id && (
+                                                        <div className="absolute top-3 right-3 w-6 h-6 bg-black rounded-full flex items-center justify-center">
+                                                            <Check className="h-3.5 w-3.5 text-white" />
                                                         </div>
-                                                        {selectedAddressId === addr.id && (
-                                                            <Check className="h-5 w-5 text-[#047BD2]" />
-                                                        )}
+                                                    )}
+                                                    <div className="flex items-center gap-2 mb-2">
+                                                        <span className="font-bold text-sm text-black">{addr.firstName} {addr.lastName}</span>
+                                                        <span className="text-[10px] bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full uppercase tracking-wider font-bold">
+                                                            {addr.label}
+                                                        </span>
                                                     </div>
-                                                </div>
+                                                    <p className="text-sm text-gray-500">{addr.phone}</p>
+                                                    <p className="text-sm text-gray-500 mt-1">
+                                                        {addr.addressLine1}{addr.addressLine2 && `, ${addr.addressLine2}`}
+                                                    </p>
+                                                    <p className="text-sm text-gray-500">
+                                                        {addr.city}, {addr.state} - {addr.postalCode}
+                                                    </p>
+                                                </motion.div>
                                             ))}
                                         </div>
                                     ) : (
-                                        <p className="text-gray-500 text-center py-4">
-                                            No saved addresses. Add one to continue.
-                                        </p>
+                                        <div className="text-center py-10 border-2 border-dashed border-gray-200 rounded-xl">
+                                            <MapPin className="w-10 h-10 text-gray-300 mx-auto mb-3" />
+                                            <p className="text-gray-500 text-sm">No saved addresses. Add one to continue.</p>
+                                        </div>
                                     )}
 
                                     {/* Add Address Form */}
-                                    {showAddressForm && (
-                                        <form onSubmit={handleAddAddress} className="mt-4 p-4 border rounded-lg bg-gray-50">
-                                            <div className="grid grid-cols-2 gap-4">
-                                                <input
-                                                    type="text"
-                                                    placeholder="First Name *"
-                                                    value={newAddress.firstName}
-                                                    onChange={(e) => setNewAddress({ ...newAddress, firstName: e.target.value })}
-                                                    className="p-2 border rounded"
-                                                    required
-                                                />
-                                                <input
-                                                    type="text"
-                                                    placeholder="Last Name *"
-                                                    value={newAddress.lastName}
-                                                    onChange={(e) => setNewAddress({ ...newAddress, lastName: e.target.value })}
-                                                    className="p-2 border rounded"
-                                                    required
-                                                />
-                                                <input
-                                                    type="tel"
-                                                    placeholder="Phone (10 digits) *"
-                                                    value={newAddress.phone}
-                                                    onChange={(e) => setNewAddress({ ...newAddress, phone: e.target.value })}
-                                                    className="p-2 border rounded col-span-2"
-                                                    pattern="[0-9]{10}"
-                                                    required
-                                                />
-                                                <input
-                                                    type="text"
-                                                    placeholder="Address Line 1 *"
-                                                    value={newAddress.addressLine1}
-                                                    onChange={(e) => setNewAddress({ ...newAddress, addressLine1: e.target.value })}
-                                                    className="p-2 border rounded col-span-2"
-                                                    required
-                                                />
-                                                <input
-                                                    type="text"
-                                                    placeholder="Address Line 2"
-                                                    value={newAddress.addressLine2}
-                                                    onChange={(e) => setNewAddress({ ...newAddress, addressLine2: e.target.value })}
-                                                    className="p-2 border rounded col-span-2"
-                                                />
-                                                <input
-                                                    type="text"
-                                                    placeholder="City *"
-                                                    value={newAddress.city}
-                                                    onChange={(e) => setNewAddress({ ...newAddress, city: e.target.value })}
-                                                    className="p-2 border rounded"
-                                                    required
-                                                />
-                                                <input
-                                                    type="text"
-                                                    placeholder="State *"
-                                                    value={newAddress.state}
-                                                    onChange={(e) => setNewAddress({ ...newAddress, state: e.target.value })}
-                                                    className="p-2 border rounded"
-                                                    required
-                                                />
-                                                <input
-                                                    type="text"
-                                                    placeholder="Postal Code *"
-                                                    value={newAddress.postalCode}
-                                                    onChange={(e) => setNewAddress({ ...newAddress, postalCode: e.target.value })}
-                                                    className="p-2 border rounded"
-                                                    required
-                                                />
-                                                <select
-                                                    value={newAddress.label}
-                                                    onChange={(e) => setNewAddress({ ...newAddress, label: e.target.value })}
-                                                    className="p-2 border rounded"
-                                                >
-                                                    <option value="Home">Home</option>
-                                                    <option value="Office">Office</option>
-                                                    <option value="Other">Other</option>
-                                                </select>
-                                            </div>
-                                            <div className="flex gap-2 mt-4">
-                                                <Button type="submit" className="bg-[#047BD2] text-white">
-                                                    Save Address
-                                                </Button>
-                                                <Button
-                                                    type="button"
-                                                    variant="outline"
-                                                    onClick={() => setShowAddressForm(false)}
-                                                >
-                                                    Cancel
-                                                </Button>
-                                            </div>
-                                        </form>
-                                    )}
+                                    <AnimatePresence>
+                                        {showAddressForm && (
+                                            <motion.form
+                                                initial={{ opacity: 0, height: 0 }}
+                                                animate={{ opacity: 1, height: 'auto' }}
+                                                exit={{ opacity: 0, height: 0 }}
+                                                onSubmit={handleAddAddress}
+                                                className="mt-6 p-6 bg-gray-50 rounded-xl border border-gray-200 overflow-hidden"
+                                            >
+                                                <div className="flex items-center justify-between mb-6">
+                                                    <h3 className="font-bold text-sm uppercase tracking-widest">New Address</h3>
+                                                    <button type="button" onClick={() => setShowAddressForm(false)} className="text-gray-400 hover:text-black">
+                                                        <X className="w-5 h-5" />
+                                                    </button>
+                                                </div>
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                    <PremiumInput label="First Name" placeholder="John" value={newAddress.firstName} onChange={handleAddressChange('firstName')} required />
+                                                    <PremiumInput label="Last Name" placeholder="Doe" value={newAddress.lastName} onChange={handleAddressChange('lastName')} required />
+                                                    <div className="md:col-span-2">
+                                                        <PremiumInput label="Phone" type="tel" placeholder="10-digit mobile number" value={newAddress.phone} onChange={handleAddressChange('phone')} pattern="[0-9]{10}" required />
+                                                    </div>
+                                                    <div className="md:col-span-2">
+                                                        <PremiumInput label="Address Line 1" placeholder="Street address, P.O. box" value={newAddress.addressLine1} onChange={handleAddressChange('addressLine1')} required />
+                                                    </div>
+                                                    <div className="md:col-span-2">
+                                                        <PremiumInput label="Address Line 2 (Optional)" placeholder="Apartment, suite, unit, building, floor" value={newAddress.addressLine2} onChange={handleAddressChange('addressLine2')} />
+                                                    </div>
+                                                    <PremiumInput label="City" placeholder="City" value={newAddress.city} onChange={handleAddressChange('city')} required />
+                                                    <PremiumInput label="State" placeholder="State" value={newAddress.state} onChange={handleAddressChange('state')} required />
+                                                    <PremiumInput label="Postal Code" placeholder="6-digit PIN" value={newAddress.postalCode} onChange={handleAddressChange('postalCode')} required />
+                                                    <div className="space-y-1.5">
+                                                        <label className="text-xs font-bold uppercase tracking-widest text-gray-500">Address Type</label>
+                                                        <select value={newAddress.label} onChange={handleAddressChange('label')} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-black transition-all">
+                                                            <option value="Home">Home</option>
+                                                            <option value="Office">Office</option>
+                                                            <option value="Other">Other</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                                <div className="flex gap-3 mt-6">
+                                                    <Button type="submit" className="bg-black text-white hover:bg-gray-800 px-6 py-2.5 rounded-full font-bold uppercase tracking-widest text-xs">
+                                                        Save Address
+                                                    </Button>
+                                                    <Button type="button" variant="outline" onClick={() => setShowAddressForm(false)} className="border-gray-300 text-gray-600 hover:bg-gray-100 px-6 py-2.5 rounded-full font-bold uppercase tracking-widest text-xs">
+                                                        Cancel
+                                                    </Button>
+                                                </div>
+                                            </motion.form>
+                                        )}
+                                    </AnimatePresence>
                                 </>
                             )}
-                        </div>
+                        </motion.section>
 
-                        {/* Payment Method */}
-                        <div className="bg-white rounded-lg shadow-sm p-6">
-                            <h2 className="text-lg font-semibold flex items-center mb-4">
-                                <CreditCard className="h-5 w-5 mr-2 text-[#047BD2]" />
+                        {/* --- Payment Method Section --- */}
+                        <motion.section initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+                            <h2 className="text-lg font-black uppercase tracking-tight flex items-center mb-6">
+                                <span className="w-8 h-8 bg-black text-white rounded-full flex items-center justify-center text-sm mr-3">2</span>
                                 Payment Method
                             </h2>
-
                             <div className="space-y-3">
-                                <div
+                                {/* PhonePe */}
+                                <motion.div
+                                    whileHover={{ scale: 1.01 }}
+                                    whileTap={{ scale: 0.99 }}
                                     onClick={() => setPaymentMethod('PHONEPE')}
-                                    className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${paymentMethod === 'PHONEPE'
-                                            ? 'border-[#047BD2] bg-blue-50'
+                                    className={cn(
+                                        "relative p-5 border-2 rounded-xl cursor-pointer transition-all duration-300",
+                                        paymentMethod === 'PHONEPE'
+                                            ? 'border-black bg-gray-50 shadow-sm'
                                             : 'border-gray-200 hover:border-gray-300'
-                                        }`}
+                                    )}
                                 >
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex items-center">
-                                            <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center mr-3">
-                                                <span className="text-purple-600 font-bold text-sm">PP</span>
-                                            </div>
-                                            <div>
-                                                <p className="font-medium">PhonePe</p>
-                                                <p className="text-sm text-gray-500">UPI, Cards, Net Banking</p>
-                                            </div>
+                                    {paymentMethod === 'PHONEPE' && (
+                                        <div className="absolute top-4 right-4 w-6 h-6 bg-black rounded-full flex items-center justify-center">
+                                            <Check className="h-3.5 w-3.5 text-white" />
                                         </div>
-                                        {paymentMethod === 'PHONEPE' && (
-                                            <Check className="h-5 w-5 text-[#047BD2]" />
-                                        )}
-                                    </div>
-                                </div>
-
-                                <div
-                                    onClick={() => setPaymentMethod('CASH_ON_DELIVERY')}
-                                    className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${paymentMethod === 'CASH_ON_DELIVERY'
-                                            ? 'border-[#047BD2] bg-blue-50'
-                                            : 'border-gray-200 hover:border-gray-300'
-                                        }`}
-                                >
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex items-center">
-                                            <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center mr-3">
-                                                <Truck className="h-5 w-5 text-green-600" />
-                                            </div>
-                                            <div>
-                                                <p className="font-medium">Cash on Delivery</p>
-                                                <p className="text-sm text-gray-500">Pay when you receive</p>
-                                            </div>
+                                    )}
+                                    <div className="flex items-center">
+                                        <div className="w-12 h-12 bg-gradient-to-br from-purple-600 to-indigo-700 rounded-xl flex items-center justify-center mr-4 shadow-md">
+                                            <CreditCard className="h-6 w-6 text-white" />
                                         </div>
-                                        {paymentMethod === 'CASH_ON_DELIVERY' && (
-                                            <Check className="h-5 w-5 text-[#047BD2]" />
-                                        )}
+                                        <div>
+                                            <p className="font-bold text-black">Pay Online</p>
+                                            <p className="text-xs text-gray-500">UPI, Cards, Net Banking via PhonePe</p>
+                                        </div>
                                     </div>
-                                </div>
+                                </motion.div>
                             </div>
-                        </div>
+                        </motion.section>
+
+                        {/* --- KVision Purchase Mode Selection (Online vs Offline) --- */}
+                        {hasKvisionProducts && (
+                            <motion.section initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.22 }}>
+                                <h2 className="text-lg font-black uppercase tracking-tight flex items-center mb-6">
+                                    <span className="w-8 h-8 bg-gradient-to-br from-emerald-500 to-teal-600 text-white rounded-full flex items-center justify-center text-sm mr-3">
+                                        <Truck className="h-4 w-4" />
+                                    </span>
+                                    Delivery Option
+                                </h2>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    {/* Online - With Shipping */}
+                                    <motion.div
+                                        whileHover={{ scale: 1.01 }}
+                                        whileTap={{ scale: 0.99 }}
+                                        onClick={() => setPurchaseMode('ONLINE')}
+                                        className={cn(
+                                            "relative p-5 border-2 rounded-xl cursor-pointer transition-all duration-300",
+                                            purchaseMode === 'ONLINE'
+                                                ? 'border-emerald-600 bg-emerald-50 shadow-sm'
+                                                : 'border-gray-200 hover:border-gray-300'
+                                        )}
+                                    >
+                                        {purchaseMode === 'ONLINE' && (
+                                            <div className="absolute top-4 right-4 w-6 h-6 bg-emerald-600 rounded-full flex items-center justify-center">
+                                                <Check className="h-3.5 w-3.5 text-white" />
+                                            </div>
+                                        )}
+                                        <div className="flex items-center">
+                                            <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center mr-4 shadow-md">
+                                                <Truck className="h-6 w-6 text-white" />
+                                            </div>
+                                            <div>
+                                                <p className="font-bold text-black">Online Delivery</p>
+                                                <p className="text-xs text-gray-500">Get it delivered to your address</p>
+                                                <p className="text-xs text-blue-600 font-medium mt-1">Shipping charges apply</p>
+                                            </div>
+                                        </div>
+                                    </motion.div>
+
+                                    {/* Offline - Shop Pickup */}
+                                    <motion.div
+                                        whileHover={{ scale: 1.01 }}
+                                        whileTap={{ scale: 0.99 }}
+                                        onClick={() => setPurchaseMode('OFFLINE')}
+                                        className={cn(
+                                            "relative p-5 border-2 rounded-xl cursor-pointer transition-all duration-300",
+                                            purchaseMode === 'OFFLINE'
+                                                ? 'border-emerald-600 bg-emerald-50 shadow-sm'
+                                                : 'border-gray-200 hover:border-gray-300'
+                                        )}
+                                    >
+                                        {purchaseMode === 'OFFLINE' && (
+                                            <div className="absolute top-4 right-4 w-6 h-6 bg-emerald-600 rounded-full flex items-center justify-center">
+                                                <Check className="h-3.5 w-3.5 text-white" />
+                                            </div>
+                                        )}
+                                        <div className="flex items-center">
+                                            <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center mr-4 shadow-md">
+                                                <MapPin className="h-6 w-6 text-white" />
+                                            </div>
+                                            <div>
+                                                <p className="font-bold text-black">Shop Pickup</p>
+                                                <p className="text-xs text-gray-500">Pick up from our shop</p>
+                                                <p className="text-xs text-green-600 font-medium mt-1">FREE - No shipping charges</p>
+                                            </div>
+                                        </div>
+                                    </motion.div>
+                                </div>
+                            </motion.section>
+                        )}
+
+                        {/* --- KVision Membership Section (for Footwear) --- */}
+                        {hasKvisionProducts && !isMember && (
+                            <motion.section initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}>
+                                <h2 className="text-lg font-black uppercase tracking-tight flex items-center mb-6">
+                                    <span className="w-8 h-8 bg-gradient-to-br from-purple-600 to-indigo-700 text-white rounded-full flex items-center justify-center text-sm mr-3">
+                                        <Sparkles className="h-4 w-4" />
+                                    </span>
+                                    Join KVision
+                                </h2>
+                                <div className="p-6 bg-gradient-to-br from-purple-50 to-indigo-50 rounded-xl border border-purple-200">
+                                    <div className="flex items-start gap-4 mb-4">
+                                        <div className="w-12 h-12 bg-gradient-to-br from-purple-600 to-indigo-700 rounded-xl flex items-center justify-center flex-shrink-0 shadow-md">
+                                            <Users className="h-6 w-6 text-white" />
+                                        </div>
+                                        <div>
+                                            <h3 className="font-bold text-black">Become a KVision Member</h3>
+                                            <p className="text-sm text-gray-600">To purchase KVision (Footwear) products, you need to be a member. Enter a referral code to join!</p>
+                                        </div>
+                                    </div>
+                                    <div className="space-y-1.5">
+                                        <label className="text-xs font-bold uppercase tracking-widest text-purple-700">Referral Code *</label>
+                                        <div className="flex gap-2">
+                                            <input
+                                                type="text"
+                                                value={referralCode}
+                                                onChange={(e) => {
+                                                    setReferralCode(e.target.value);
+                                                    setVerificationState({ valid: false, message: '', name: '' });
+                                                }}
+                                                placeholder="Enter 10-digit phone number"
+                                                className={cn(
+                                                    "flex-1 px-4 py-3 bg-white border rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500/20 transition-all",
+                                                    verificationState.valid
+                                                        ? "border-green-500 focus:border-green-500"
+                                                        : verificationState.message && !verificationState.valid
+                                                            ? "border-red-500 focus:border-red-500"
+                                                            : "border-purple-300 focus:border-purple-500"
+                                                )}
+                                                required
+                                            />
+                                            <Button
+                                                type="button"
+                                                onClick={async () => {
+                                                    if (!referralCode.trim()) return;
+                                                    setVerifying(true);
+                                                    try {
+                                                        const response = await referralAPI.validate(referralCode);
+                                                        const { valid, message, name } = response.data?.data || {};
+                                                        setVerificationState({
+                                                            valid,
+                                                            message: message || (valid ? 'Verified!' : 'Invalid'),
+                                                            name
+                                                        });
+                                                    } catch (error) {
+                                                        setVerificationState({ valid: false, message: 'Validation failed', name: '' });
+                                                    } finally {
+                                                        setVerifying(false);
+                                                    }
+                                                }}
+                                                disabled={verifying || !referralCode.trim() || verificationState.valid}
+                                                className={cn(
+                                                    "whitespace-nowrap px-6",
+                                                    verificationState.valid ? "bg-green-600 hover:bg-green-700" : "bg-purple-600 hover:bg-purple-700"
+                                                )}
+                                            >
+                                                {verifying ? '...' : verificationState.valid ? 'Verified' : 'Verify'}
+                                            </Button>
+                                        </div>
+
+                                        {/* Validation Feedback */}
+                                        {verificationState.message && (
+                                            <motion.div
+                                                initial={{ opacity: 0, height: 0 }}
+                                                animate={{ opacity: 1, height: 'auto' }}
+                                                className={cn(
+                                                    "text-xs flex items-center gap-1.5 font-medium mt-1",
+                                                    verificationState.valid ? "text-green-600" : "text-red-500"
+                                                )}
+                                            >
+                                                {verificationState.valid ? (
+                                                    <>
+                                                        <Check className="w-3.5 h-3.5" />
+                                                        <span>Referrer: {verificationState.name}</span>
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <X className="w-3.5 h-3.5" />
+                                                        <span>{verificationState.message}</span>
+                                                    </>
+                                                )}
+                                            </motion.div>
+                                        )}
+                                    </div>
+                                    <p className="text-xs text-purple-600 mt-2">* Required for KVision purchases</p>
+                                </div>
+                            </motion.section>
+                        )}
                     </div>
 
                     {/* Right Column - Order Summary */}
-                    <div className="lg:w-96">
-                        <div className="bg-white rounded-lg shadow-sm p-6 sticky top-6">
-                            <h2 className="text-lg font-semibold mb-4">Order Summary</h2>
+                    <div className="lg:w-[400px]">
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.3 }}
+                            className="bg-gray-50 rounded-2xl p-6 lg:p-8 sticky top-8 border border-gray-100"
+                        >
+                            <h2 className="text-lg font-black uppercase tracking-tight mb-6">Order Summary</h2>
 
                             {/* Items */}
-                            <div className="space-y-3 mb-4 max-h-64 overflow-y-auto">
+                            <div className="space-y-4 mb-6 max-h-72 overflow-y-auto pr-2 -mr-2">
                                 {cart.items.map((item) => (
-                                    <div key={item.id} className="flex items-center gap-3">
-                                        <img
-                                            src={item.image || '/placeholder.jpg'}
-                                            alt={item.name}
-                                            className="w-12 h-12 object-cover rounded"
-                                        />
+                                    <div key={item.id} className="flex items-center gap-4">
+                                        <div className="w-16 h-20 bg-white rounded-lg overflow-hidden border border-gray-200 flex-shrink-0">
+                                            <img
+                                                src={item.image || '/placeholder.jpg'}
+                                                alt={item.name}
+                                                className="w-full h-full object-cover"
+                                            />
+                                        </div>
                                         <div className="flex-1 min-w-0">
-                                            <p className="text-sm font-medium truncate">{item.name}</p>
+                                            <p className="text-sm font-bold text-black truncate">{item.name}</p>
                                             <p className="text-xs text-gray-500">Qty: {item.quantity}</p>
                                         </div>
-                                        <p className="text-sm font-medium">₹{(item.price * item.quantity).toFixed(2)}</p>
+                                        <p className="font-bold text-sm">₹{(item.price * item.quantity).toFixed(0)}</p>
                                     </div>
                                 ))}
                             </div>
 
-                            <div className="border-t pt-4 space-y-2">
+                            <div className="border-t border-gray-200 pt-6 space-y-3">
                                 <div className="flex justify-between text-sm">
-                                    <span className="text-gray-600">Subtotal</span>
-                                    <span>₹{subtotal.toFixed(2)}</span>
+                                    <span className="text-gray-500">Subtotal</span>
+                                    <span className="font-medium text-black">₹{subtotal.toFixed(0)}</span>
                                 </div>
                                 <div className="flex justify-between text-sm">
-                                    <span className="text-gray-600">Shipping</span>
-                                    <span className={shipping === 0 ? 'text-green-600' : ''}>
-                                        {shipping === 0 ? 'Free' : `₹${shipping.toFixed(2)}`}
+                                    <span className="text-gray-500">Shipping</span>
+                                    <span className={cn("font-medium", shipping === 0 ? 'text-green-600' : 'text-black')}>
+                                        {shipping === 0 ? 'FREE' : `₹${shipping}`}
                                     </span>
                                 </div>
                                 <div className="flex justify-between text-sm">
-                                    <span className="text-gray-600">Tax (5% GST)</span>
-                                    <span>₹{tax.toFixed(2)}</span>
+                                    <span className="text-gray-500">Tax (5% GST)</span>
+                                    <span className="font-medium text-black">₹{tax.toFixed(0)}</span>
                                 </div>
-                                <div className="border-t pt-2 flex justify-between font-semibold">
-                                    <span>Total</span>
-                                    <span className="text-[#047BD2]">₹{total.toFixed(2)}</span>
+                                <div className="border-t border-gray-200 pt-4 mt-4 flex justify-between items-center">
+                                    <span className="font-black text-black uppercase tracking-tight">Total</span>
+                                    <span className="text-2xl font-black text-black">₹{total.toFixed(0)}</span>
                                 </div>
                             </div>
 
                             <Button
                                 onClick={handleCheckout}
                                 disabled={!selectedAddressId || processing}
-                                className="w-full mt-6 bg-[#047BD2] hover:bg-[#0369A1] text-white py-3 disabled:opacity-50"
+                                className="w-full mt-8 bg-black hover:bg-gray-800 text-white py-4 rounded-full font-bold uppercase tracking-widest text-sm disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 flex items-center justify-center"
                             >
-                                {processing ? 'Processing...' :
-                                    paymentMethod === 'PHONEPE' ? 'Pay Now' : 'Place Order'}
+                                {processing ? (
+                                    <div className="flex items-center space-x-2">
+                                        <div className="animate-spin rounded-full h-4 w-4 border-2 border-white/30 border-t-white"></div>
+                                        <span>Processing...</span>
+                                    </div>
+                                ) : (
+                                    <span className="flex items-center">
+                                        {paymentMethod === 'PHONEPE' ? 'Pay Now' : 'Place Order'}
+                                        <ChevronRight className="ml-2 h-4 w-4" />
+                                    </span>
+                                )}
                             </Button>
 
                             {!selectedAddressId && (
-                                <p className="text-red-500 text-sm text-center mt-2">
-                                    Please select a shipping address
+                                <p className="text-red-500 text-xs text-center mt-3 font-medium">
+                                    Please select a shipping address to continue.
                                 </p>
                             )}
-                        </div>
+
+                            {/* Trust Indicators */}
+                            <div className="mt-6 pt-6 border-t border-gray-200 flex items-center justify-center gap-4 text-gray-400">
+                                <div className="flex items-center gap-1.5 text-xs">
+                                    <Shield className="h-4 w-4" />
+                                    <span>Secure</span>
+                                </div>
+                                <div className="flex items-center gap-1.5 text-xs">
+                                    <Lock className="h-4 w-4" />
+                                    <span>Encrypted</span>
+                                </div>
+                            </div>
+                        </motion.div>
                     </div>
                 </div>
             </div>

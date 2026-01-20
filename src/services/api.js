@@ -78,8 +78,14 @@ api.interceptors.response.use(
 
     // Handle network errors
     if (!error.response) {
-      console.error('Network error - backend may be down');
-      error.message = 'Unable to connect to server. Please check if the backend is running.';
+      console.error('Network/Connection Error:', error);
+      console.log('Current API Base URL:', api.defaults.baseURL);
+      console.log('Browser URL:', window.location.href);
+
+      // If the error message is generic "Network Error", provide a more helpful message
+      if (error.message === 'Network Error') {
+        error.message = 'Unable to connect to server. Please check your internet connection or if the backend is running.';
+      }
     }
 
     return Promise.reject(error);
@@ -115,6 +121,7 @@ export const productsAPI = {
     api.get('/products/search', { params: { q: query, ...params } }),
   getTopRated: () => api.get('/products/top-rated'),
   getNewest: () => api.get('/products/newest'),
+  getOffers: () => api.get('/products/offers'),
 };
 
 // Categories API
@@ -156,6 +163,9 @@ export const ordersAPI = {
 export const referralAPI = {
   getStats: () => api.get('/referral/stats'),
   getCode: () => api.get('/referral/code'),
+  getMembership: () => api.get('/referral/membership'),
+  getTree: () => api.get('/referral/tree'),
+  validate: (code) => api.get(`/referral/validate?code=${code}`),
 };
 
 // Addresses API
@@ -186,12 +196,18 @@ export const userAPI = {
 
 // Admin API
 export const adminAPI = {
+  // Dashboard
+  getDashboardStats: () => api.get('/admin/dashboard'),
+
   // Users
   getUsers: (params = {}) => api.get('/admin/users', { params }),
   createUser: (userData) => api.post('/admin/users', userData),
   deleteUser: (userId) => api.delete(`/admin/users/${userId}`),
   updateUserStatus: (userId, enabled) => api.put(`/admin/users/${userId}/status`, { enabled }),
   updateUserRole: (userId, role) => api.put(`/admin/users/${userId}/role`, { role }),
+  resetUserPassword: (userId, newPassword, confirmPassword) => api.put(`/admin/users/${userId}/reset-password`, { newPassword, confirmPassword }),
+  getUserStats: () => api.get('/admin/users/stats'),
+  updateUserCoupons: (userId, action, amount, reason) => api.put(`/admin/users/${userId}/coupons`, { action, amount, reason }),
 
   // Products
   createProduct: (productData) => api.post('/admin/products', productData),

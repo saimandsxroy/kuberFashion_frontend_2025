@@ -149,7 +149,7 @@ const OrdersPage = () => {
                         {getStatusIcon(order.status)}
                         <span className="ml-2 capitalize">{order.status}</span>
                       </span>
-                      <p className="text-lg font-bold text-gray-900">${order.totalAmount}</p>
+                      <p className="text-lg font-bold text-gray-900">₹{order.totalAmount}</p>
                     </div>
                   </div>
                 </div>
@@ -177,7 +177,7 @@ const OrdersPage = () => {
                           </p>
                         </div>
                         <div className="text-sm font-medium text-gray-900">
-                          ${(item.price * item.quantity).toFixed(2)}
+                          ₹{(item.price * item.quantity).toLocaleString()}
                         </div>
                       </div>
                     ))}

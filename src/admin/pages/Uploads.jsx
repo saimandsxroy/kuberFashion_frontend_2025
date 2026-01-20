@@ -5,7 +5,7 @@ const CATEGORIES = [
   { slug: 'mens-fashion', name: "Men's Fashion" },
   { slug: 'womens-fashion', name: "Women's Fashion" },
   { slug: 'kids-fashion', name: 'Kids Fashion' },
-  { slug: 'footwear', name: 'Footwear' },
+  { slug: 'kvision', name: 'KVision Membership' },
   { slug: 'accessories', name: 'Accessories' },
   { slug: 'sports-active', name: 'Sports & Active' }
 ];
@@ -36,7 +36,7 @@ export default function AdminUploads() {
     e.preventDefault();
     setError('');
     setSuccess(false);
-    
+
     if (!file) {
       setError('Please select a file to upload');
       return;
@@ -47,7 +47,7 @@ export default function AdminUploads() {
       const form = new FormData();
       form.append('file', file);
       form.append('categorySlug', category);
-      
+
       // Generate unique filename
       const extension = file.name.split('.').pop();
       const unique = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
@@ -63,7 +63,7 @@ export default function AdminUploads() {
       });
 
       const data = await res.json();
-      
+
       if (res.ok && data.success) {
         setUrl(data.data?.publicUrl || '');
         setSuccess(true);
@@ -91,9 +91,9 @@ export default function AdminUploads() {
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Category
             </label>
-            <select 
-              value={category} 
-              onChange={(e) => setCategory(e.target.value)} 
+            <select
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
               {CATEGORIES.map(c => (
@@ -120,20 +120,20 @@ export default function AdminUploads() {
                     <p className="text-xs text-gray-500">PNG, JPG, GIF up to 10MB</p>
                   </div>
                 )}
-                <input 
-                  type="file" 
-                  accept="image/*" 
+                <input
+                  type="file"
+                  accept="image/*"
                   onChange={handleFileChange}
-                  className="hidden" 
+                  className="hidden"
                 />
               </label>
             </div>
           </div>
 
           {/* Upload Button */}
-          <button 
-            disabled={loading || !file} 
-            type="submit" 
+          <button
+            disabled={loading || !file}
+            type="submit"
             className="w-full bg-blue-600 text-white px-4 py-3 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 transition-colors"
           >
             <Upload className="h-5 w-5" />
@@ -156,14 +156,14 @@ export default function AdminUploads() {
               <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
               <p className="text-green-800">Image uploaded successfully!</p>
             </div>
-            
+
             <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg">
               <p className="text-sm font-medium text-gray-700 mb-2">Public URL:</p>
               <div className="flex items-center space-x-2">
-                <input 
-                  type="text" 
-                  value={url} 
-                  readOnly 
+                <input
+                  type="text"
+                  value={url}
+                  readOnly
                   className="flex-1 px-3 py-2 bg-white border border-gray-300 rounded text-sm"
                   onClick={(e) => e.target.select()}
                 />
@@ -177,9 +177,9 @@ export default function AdminUploads() {
                   Copy
                 </button>
               </div>
-              <a 
-                href={url} 
-                target="_blank" 
+              <a
+                href={url}
+                target="_blank"
                 rel="noreferrer"
                 className="inline-block mt-2 text-sm text-blue-600 hover:underline"
               >

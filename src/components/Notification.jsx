@@ -40,7 +40,7 @@ const Notification = ({ type = 'info', message, isVisible, onClose, duration = 5
   };
 
   return (
-    <div className="fixed top-4 right-4 z-50 animate-in slide-in-from-right duration-300">
+    <div className="fixed top-20 right-4 z-[100] animate-in slide-in-from-right duration-300">
       <div className={`max-w-md rounded-lg border p-4 shadow-lg ${getBgColor()}`}>
         <div className="flex items-start">
           <div className="flex-shrink-0">
@@ -64,35 +64,41 @@ const Notification = ({ type = 'info', message, isVisible, onClose, duration = 5
 };
 
 // Hook for managing notifications
+// Hook for managing notifications
 export const useNotification = () => {
   const [notification, setNotification] = useState({
     isVisible: false,
     type: 'info',
-    message: ''
+    message: '',
+    duration: 5000
   });
 
-  const showNotification = (type, message, duration = 5000) => {
+  const showNotification = React.useCallback((type, message, duration = 5000) => {
     setNotification({
       isVisible: true,
       type,
       message,
       duration
     });
-  };
+  }, []);
 
-  const hideNotification = () => {
+  const hideNotification = React.useCallback(() => {
     setNotification(prev => ({ ...prev, isVisible: false }));
-  };
+  }, []);
 
-  const NotificationComponent = () => (
-    <Notification
-      type={notification.type}
-      message={notification.message}
-      isVisible={notification.isVisible}
-      onClose={hideNotification}
-      duration={notification.duration}
-    />
-  );
+  // Use useMemo to prevent unnecessary re-renders of the component
+  const NotificationComponent = React.useMemo(() => {
+    const Component = () => (
+      <Notification
+        type={notification.type}
+        message={notification.message}
+        isVisible={notification.isVisible}
+        onClose={hideNotification}
+        duration={notification.duration}
+      />
+    );
+    return Component;
+  }, [notification, hideNotification]);
 
   return {
     showNotification,

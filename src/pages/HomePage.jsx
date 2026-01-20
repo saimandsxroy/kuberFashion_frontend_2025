@@ -9,6 +9,8 @@ const HomePage = () => {
   const [featuredProducts, setFeaturedProducts] = useState([]);
   const [likedProducts, setLikedProducts] = useState([]);
   const [trendingProducts, setTrendingProducts] = useState([]);
+  const [offerProducts, setOfferProducts] = useState([]);
+  const [kvisionProducts, setKvisionProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const WHATSAPP_NUMBER = import.meta.env.VITE_WHATSAPP_NUMBER || '919179193970';
@@ -26,7 +28,7 @@ const HomePage = () => {
 
         // Load all products for other sections
         const allProducts = await fetchProducts();
-        
+
         // Get top-rated products for "Inspired by Your Interest"
         try {
           const topRatedResponse = await productsAPI.getTopRated();
@@ -41,6 +43,22 @@ const HomePage = () => {
           setTrendingProducts(newestResponse.data.data?.slice(0, 6) || allProducts.slice(2, 8));
         } catch (err) {
           setTrendingProducts(allProducts.slice(2, 8));
+        }
+
+        // Get Offer products
+        try {
+          const offersRes = await productsAPI.getOffers();
+          setOfferProducts(offersRes.data.data || []);
+        } catch (err) {
+          console.error("Failed to load offers", err);
+        }
+
+        // KVision Products
+        try {
+          const kRes = await productsAPI.getAll({ category: 'kvision', limit: 4 });
+          setKvisionProducts(kRes.data.data?.items || kRes.data.data || []);
+        } catch (e) {
+          console.error("Failed to load KVision", e);
         }
 
       } catch (err) {
@@ -60,8 +78,8 @@ const HomePage = () => {
         <div className="text-center">
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Oops! Something went wrong</h2>
           <p className="text-gray-600 mb-4">{error}</p>
-          <button 
-            onClick={() => window.location.reload()} 
+          <button
+            onClick={() => window.location.reload()}
             className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
           >
             Retry
@@ -74,27 +92,63 @@ const HomePage = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <HeroSection />
-      
+
       {/* Reduced spacing between sections */}
       <div className="space-y-4 sm:space-y-6">
         <FeaturedCategories />
-        
-        <ProductRibbon 
-          products={featuredProducts} 
+
+        {/* Special Offers Ribbon */}
+        {offerProducts.length > 0 && (
+          <ProductRibbon
+            products={offerProducts}
+            title="Special Offers"
+            showTitle={true}
+            loading={loading}
+          />
+        )}
+
+        {/* KVision Membership Section - Below Shop by Category */}
+        {kvisionProducts.length > 0 && (
+          <section className="bg-gradient-to-r from-purple-50 to-indigo-50 py-12 sm:py-16 border-y border-gray-100/50">
+            <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+              <div className="flex items-end justify-between mb-8 sm:mb-10">
+                <div>
+                  <h2 className="text-3xl sm:text-4xl lg:text-5xl font-heading font-black text-black leading-tight tracking-tighter uppercase mb-2">
+                    KVision Membership
+                  </h2>
+                  <p className="text-primary-500 mt-1">Purchase specific footwear to unlock premium membership.</p>
+                </div>
+                <a
+                  href="/categories/kvision"
+                  className="group hidden sm:flex items-center space-x-2 text-primary-600 hover:text-action transition-colors duration-300 font-medium"
+                >
+                  <span>View All</span>
+                  <div className="bg-white p-2 rounded-full shadow-sm group-hover:shadow-md transition-all duration-300 group-hover:translate-x-1">
+                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+                  </div>
+                </a>
+              </div>
+              <ProductRibbon products={kvisionProducts} title="" showTitle={false} loading={loading} viewAllUrl="/categories/kvision" />
+            </div>
+          </section>
+        )}
+
+        <ProductRibbon
+          products={featuredProducts}
           title="Top Products"
           showTitle={true}
           loading={loading}
         />
-        
-        <ProductRibbon 
-          products={likedProducts} 
+
+        <ProductRibbon
+          products={likedProducts}
           title="Inspired by Your Interest"
           showTitle={true}
           loading={loading}
         />
-        
-        <ProductRibbon 
-          products={trendingProducts} 
+
+        <ProductRibbon
+          products={trendingProducts}
           title="Trending Now"
           showTitle={true}
           loading={loading}

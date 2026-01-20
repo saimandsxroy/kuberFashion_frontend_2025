@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom'; 
-import { Button } from '../../components/Button';  
-import { InfiniteSlider } from '../../components/InfiniteSlider';  
-import { cn } from '../../lib/utils'; 
+import { motion, AnimatePresence } from 'framer-motion';
+import { Link, useNavigate } from 'react-router-dom';
+import { Button } from '../../components/Button';
+import { InfiniteSlider } from '../../components/InfiniteSlider';
+import { cn } from '../../lib/utils';
 import { Menu, X, ShoppingBag, User, Heart, Search, Bell, MapPin, ChevronDown, Settings, LogOut } from 'lucide-react';
 import ProgressiveBlur from '../../components/ProgressiveBlur';
 import { useCart } from '../../context/CartContext';
@@ -92,7 +93,7 @@ const UserHomePage = () => {
           console.warn('⚠️ No products from backend, falling back to local data');
           const localFeatured = await getFeaturedProducts();
           const localProducts = await fetchProducts();
-          
+
           setFeaturedProducts(localFeatured);
           setLikedProducts(localProducts.slice(0, 6));
           setTrendingProducts(localProducts.slice(2, 8));
@@ -108,7 +109,7 @@ const UserHomePage = () => {
       } catch (err) {
         console.error('❌ Error loading homepage products:', err);
         setError('Failed to load products. Please try again later.');
-        
+
         // Last resort: try to load local fallback data
         try {
           const localFeatured = await getFeaturedProducts();
@@ -134,8 +135,8 @@ const UserHomePage = () => {
         <div className="text-center">
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Oops! Something went wrong</h2>
           <p className="text-gray-600 mb-4">{error}</p>
-          <button 
-            onClick={() => window.location.reload()} 
+          <button
+            onClick={() => window.location.reload()}
             className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
           >
             Retry
@@ -148,7 +149,7 @@ const UserHomePage = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <UserHeroHeader />
-      
+
       <main className="mt-16">
         {/* Hero Banner Section */}
         <section className="bg-gradient-to-br from-blue-50 via-white to-indigo-50 min-h-screen">
@@ -162,13 +163,13 @@ const UserHomePage = () => {
                     <span className="mr-2 text-base">🔥</span>
                     Big Fashion Sale - Up to 80% OFF
                   </div>
-                  
+
                   <div className="space-y-2 sm:space-y-4">
                     <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-7.5xl font-bold tracking-tight text-[#1a1a1a] leading-[1.1] font-sans">
                       <span className="block">Fashion That</span>
                       <span className="text-[#047BD2] bg-clip-text bg-gradient-to-r from-[#047BD2] to-[#00B4D8]">Makes You</span>
                     </h1>
-                    
+
                     <p className="text-base sm:text-lg md:text-xl text-[#4B5563] max-w-xl leading-relaxed font-sans font-light tracking-wide">
                       Discover premium fashion collections with exclusive designs and unbeatable prices.
                     </p>
@@ -236,48 +237,48 @@ const UserHomePage = () => {
                     alt="Fashion Collection"
                     className="h-full w-full object-cover hover:scale-105 transition-transform duration-700"
                   />
-                  
+
                   {/* Floating Offers */}
                   <div className="absolute top-4 sm:top-6 right-4 sm:right-6 bg-gradient-to-r from-[#FF4081] to-[#E91E63] text-white px-4 py-3 rounded-xl text-sm sm:text-base font-bold shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300">
                     50% OFF
                   </div>
-                  
+
                   <div className="absolute bottom-4 sm:bottom-6 left-4 sm:left-6 bg-white/95 backdrop-blur-md px-4 sm:px-6 py-3 sm:py-4 rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300">
                     <div className="text-xs sm:text-sm text-[#666666] font-medium">Starting from</div>
                     <div className="text-lg sm:text-xl font-bold text-[#1a1a1a]">₹299</div>
                   </div>
-                  
+
                   {/* Decorative Elements */}
-                  <div className="absolute top-1/2 left-0 w-4 h-4 bg-[#047BD2] rounded-full opacity-70 animate-bounce" style={{animationDelay: '0s'}}></div>
-                  <div className="absolute top-1/3 right-0 w-3 h-3 bg-[#FF4081] rounded-full opacity-70 animate-bounce" style={{animationDelay: '1s'}}></div>
-                  <div className="absolute bottom-1/3 left-1/4 w-2 h-2 bg-[#10B981] rounded-full opacity-70 animate-bounce" style={{animationDelay: '2s'}}></div>
+                  <div className="absolute top-1/2 left-0 w-4 h-4 bg-[#047BD2] rounded-full opacity-70 animate-bounce" style={{ animationDelay: '0s' }}></div>
+                  <div className="absolute top-1/3 right-0 w-3 h-3 bg-[#FF4081] rounded-full opacity-70 animate-bounce" style={{ animationDelay: '1s' }}></div>
+                  <div className="absolute bottom-1/3 left-1/4 w-2 h-2 bg-[#10B981] rounded-full opacity-70 animate-bounce" style={{ animationDelay: '2s' }}></div>
                 </div>
               </div>
             </div>
           </div>
         </section>
       </main>
-      
+
       {/* Reduced spacing between sections */}
       <div className="space-y-4 sm:space-y-6">
         <FeaturedCategories />
-        
-        <ProductRibbon 
-          products={featuredProducts} 
+
+        <ProductRibbon
+          products={featuredProducts}
           title="Top Products"
           showTitle={true}
           loading={loading}
         />
-        
-        <ProductRibbon 
-          products={likedProducts} 
+
+        <ProductRibbon
+          products={likedProducts}
           title="Inspired by Your Interest"
           showTitle={true}
           loading={loading}
         />
-        
-        <ProductRibbon 
-          products={trendingProducts} 
+
+        <ProductRibbon
+          products={trendingProducts}
           title="Trending Now"
           showTitle={true}
           loading={loading}
@@ -308,92 +309,93 @@ const UserProfileDropdown = () => {
   };
 
   return (
-    <div className="relative">
+    <div className="relative z-50">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center space-x-2 px-3 py-2 rounded-lg bg-white border border-gray-200 hover:bg-gray-50 transition-colors"
+        className="group flex items-center space-x-3 px-3 py-2 rounded-full border border-transparent hover:border-gray-100 transition-all duration-300"
       >
-        <div className="h-8 w-8 bg-blue-100 rounded-full flex items-center justify-center">
-          <User className="h-5 w-5 text-blue-600" />
+        <div className="h-9 w-9 bg-black text-white rounded-full flex items-center justify-center shadow-md group-hover:scale-105 transition-transform duration-300">
+          <span className="font-heading font-bold text-sm">
+            {user?.firstName?.charAt(0) || user?.email?.charAt(0) || 'U'}
+          </span>
         </div>
         <div className="text-left hidden sm:block">
-          <p className="text-sm font-medium text-gray-900">
-            {user?.firstName || user?.email?.split('@')[0] || 'User'}
+          <p className="text-xs font-bold uppercase tracking-widest text-black group-hover:text-gray-600 transition-colors">
+            {user?.firstName || 'My Account'}
           </p>
-          <p className="text-xs text-gray-500">My Account</p>
         </div>
-        <ChevronDown className={`h-4 w-4 text-gray-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+        <ChevronDown
+          className={cn(
+            "h-4 w-4 text-gray-400 transition-transform duration-300 ease-out",
+            isOpen ? 'rotate-180 text-black' : 'group-hover:text-black'
+          )}
+        />
       </button>
 
-      {isOpen && (
-        <>
-          <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
-            {/* User Info */}
-            <div className="px-4 py-3 border-b border-gray-100">
-              <div className="flex items-center space-x-3">
-                <div className="h-10 w-10 bg-blue-100 rounded-full flex items-center justify-center">
-                  <User className="h-6 w-6 text-blue-600" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-900">
-                    {user?.firstName && user?.lastName
-                      ? `${user.firstName} ${user.lastName}`
-                      : user?.email}
-                  </p>
-                  <p className="text-xs text-gray-500">{user?.email}</p>
+      <AnimatePresence>
+        {isOpen && (
+          <>
+            <motion.div
+              initial={{ opacity: 0, y: 8, scale: 0.96 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 8, scale: 0.96 }}
+              transition={{ duration: 0.2, ease: "easeOut" }}
+              className="absolute right-0 mt-3 w-72 bg-white rounded-xl shadow-[0_4px_30px_rgba(0,0,0,0.1)] border border-gray-100 overflow-hidden z-[60]"
+            >
+              {/* User Info Header */}
+              <div className="px-6 py-6 bg-gray-50 border-b border-gray-100">
+                <div className="flex items-center space-x-4">
+                  <div className="h-12 w-12 bg-gradient-to-br from-black to-gray-800 text-white rounded-full flex items-center justify-center text-lg font-bold shadow-sm">
+                    {user?.firstName?.charAt(0).toUpperCase() || 'U'}
+                  </div>
+                  <div className="flex flex-col overflow-hidden">
+                    <span className="text-sm font-bold text-black truncate">
+                      {user?.firstName ? `${user.firstName} ${user.lastName || ''}` : 'Fashion Enthusiast'}
+                    </span>
+                    <span className="text-xs text-gray-500 truncate max-w-[160px]">{user?.email}</span>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            {/* Menu Items */}
-            <div className="py-2">
-              <Link
-                to="/profile"
-                className="flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
-                onClick={() => setIsOpen(false)}
-              >
-                <Settings className="h-4 w-4" />
-                <span>Profile Settings</span>
-              </Link>
-              
-              <Link
-                to="/cart"
-                className="flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
-                onClick={() => setIsOpen(false)}
-              >
-                <ShoppingBag className="h-4 w-4" />
-                <span>My Orders</span>
-              </Link>
-              
-              <Link
-                to="/wishlist"
-                className="flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
-                onClick={() => setIsOpen(false)}
-              >
-                <Heart className="h-4 w-4" />
-                <span>Wishlist</span>
-              </Link>
-            </div>
+              {/* Menu Items */}
+              <div className="py-2">
+                {[
+                  { icon: Settings, label: 'Account Settings', path: '/profile' },
+                  { icon: ShoppingBag, label: 'My Orders', path: '/cart' },
+                  { icon: Heart, label: 'Wishlist', path: '/wishlist' }
+                ].map((item, idx) => (
+                  <Link
+                    key={idx}
+                    to={item.path}
+                    onClick={() => setIsOpen(false)}
+                    className="flex items-center space-x-3 px-6 py-3.5 text-sm font-medium text-gray-600 hover:text-black hover:bg-gray-50 transition-colors group"
+                  >
+                    <item.icon className="h-4 w-4 text-gray-400 group-hover:text-black transition-colors" />
+                    <span>{item.label}</span>
+                  </Link>
+                ))}
+              </div>
 
-            {/* Logout */}
-            <div className="border-t border-gray-100 py-2">
-              <button
-                onClick={handleLogout}
-                className="flex items-center space-x-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50 w-full text-left"
-              >
-                <LogOut className="h-4 w-4" />
-                <span>Sign Out</span>
-              </button>
-            </div>
-          </div>
-          
-          {/* Backdrop */}
-          <div
-            className="fixed inset-0 z-40"
-            onClick={() => setIsOpen(false)}
-          />
-        </>
-      )}
+              {/* Logout */}
+              <div className="border-t border-gray-100 p-2">
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center space-x-3 w-full px-4 py-3 rounded-lg text-sm font-bold text-red-500 hover:bg-red-50 transition-colors group"
+                >
+                  <LogOut className="h-4 w-4" />
+                  <span>Sign Out</span>
+                </button>
+              </div>
+            </motion.div>
+
+            {/* Invisible Backdrop to close on click outside */}
+            <div
+              className="fixed inset-0 z-40 bg-transparent"
+              onClick={() => setIsOpen(false)}
+            />
+          </>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
@@ -410,7 +412,7 @@ const UserHeroHeader = () => {
     navigate('/');
     setMenuState(false);
   };
-  
+
   return (
     <header className="fixed top-0 w-full z-50 bg-white border-b border-gray-200 shadow-sm">
       {/* Top Bar */}
