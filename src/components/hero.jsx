@@ -9,6 +9,12 @@ import { useWishlist } from '../context/WishlistContext';
 import { useAuth } from '../hooks/useAuth';
 import ProfileDropdown from './ProfileDropdown';
 
+// Import hero images properly for Vite bundling
+import hero1 from '../assets/hero-1.jpg';
+import hero2 from '../assets/hero-2.jpg';
+import hero3 from '../assets/hero-3.jpg';
+import hero4 from '../assets/hero-4.jpg';
+
 export function HeroSection() {
   const WHATSAPP_NUMBER = import.meta.env.VITE_WHATSAPP_NUMBER || '919179193970';
   const WHATSAPP_TEXT = encodeURIComponent(
@@ -16,10 +22,10 @@ export function HeroSection() {
   );
 
   const images = [
-    { src: '/src/assets/hero-4.jpg', alt: "Editorial Fashion 1" }, // Original
-    { src: '/src/assets/hero-1.jpg', alt: "Editorial Fashion 2" },
-    { src: '/src/assets/hero-2.jpg', alt: "Editorial Fashion 3" },
-    { src: '/src/assets/hero-3.jpg', alt: "Editorial Fashion 4" },
+    { src: hero4, alt: "Editorial Fashion 1" },
+    { src: hero1, alt: "Editorial Fashion 2" },
+    { src: hero2, alt: "Editorial Fashion 3" },
+    { src: hero3, alt: "Editorial Fashion 4" },
   ];
 
   const [currentIndex, setCurrentIndex] = useState(0);
