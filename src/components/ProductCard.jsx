@@ -115,7 +115,7 @@ const ProductCard = ({ product }) => {
 
           {/* Brand - Matches Category 'Items' tag style (Uppercase, Tracking) */}
           <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-500 leading-tight truncate">
-            {product.brand || 'HRX by Hrithik'}
+            {product.brand || ''}
           </h3>
 
           {/* Title - Clean & Readable */}

@@ -1,13 +1,36 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { HeroSection } from './hero';
 import FeaturedCategories from './FeaturedCategories';
 import ProductRibbon from './ProductRibbon';
-import { getFeaturedProducts, products } from '../data/products';
+import { getFeaturedProducts, fetchProducts } from '../data/products';
 
 const UserDashboard = () => {
-  const featuredProducts = getFeaturedProducts();
-  const likedProducts = products.slice(0, 6); // Mock liked products
-  const trendingProducts = products.slice(2, 8); // Mock trending products
+  const [featuredProducts, setFeaturedProducts] = useState([]);
+  const [trendingProducts, setTrendingProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadProducts = async () => {
+      try {
+        setLoading(true);
+
+        // Load featured products
+        const featured = await getFeaturedProducts();
+        setFeaturedProducts(featured || []);
+
+        // Load all products for trending section
+        const allProducts = await fetchProducts();
+        const sorted = [...allProducts].sort((a, b) => (b.reviews || 0) - (a.reviews || 0));
+        setTrendingProducts(sorted.slice(0, 8));
+      } catch (error) {
+        console.error("Failed to load products:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadProducts();
+  }, []);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -72,12 +95,14 @@ const UserDashboard = () => {
             products={featuredProducts}
             title="Recommended for You"
             showTitle={true}
+            loading={loading}
           />
 
           <ProductRibbon
             products={trendingProducts}
             title="Trending Now"
             showTitle={true}
+            loading={loading}
           />
         </div>
       </div>

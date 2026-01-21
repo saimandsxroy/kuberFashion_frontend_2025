@@ -20,9 +20,9 @@ export const categories = [
   {
     id: 3,
     name: "Offer",
-    slug: "footwear",
+    slug: "offers",
     image: "https://images.unsplash.com/photo-1732311273696-a6f4c50f81bc?q=80&w=735&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    description: "Step into greatness.",
+    description: "Exclusive deals and discounts.",
     productCount: 189,
     size: "normal"
   },

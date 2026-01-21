@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Heart, ShoppingBag, Star, Minus, Plus, Truck, Shield, RotateCcw, ChevronDown, Share2, Ruler, ArrowRight } from 'lucide-react';
+import { ArrowLeft, Heart, ShoppingBag, Star, Minus, Plus, Shield, ChevronDown, Share2, Ruler, ArrowRight } from 'lucide-react';
 import { Button } from './Button';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
@@ -325,27 +325,7 @@ const Product = ({ product, onBack }) => {
                 </RequireAuth>
               </div>
 
-              {/* Trust Badges */}
-              <div className="grid grid-cols-2 gap-4 py-8 mb-4 border-b border-gray-100">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center">
-                    <Truck className="w-4 h-4 text-gray-900" />
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="text-[10px] font-bold uppercase tracking-wide">Free Shipping</span>
-                    <span className="text-[10px] text-gray-500">On orders over ₹999</span>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center">
-                    <RotateCcw className="w-4 h-4 text-gray-900" />
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="text-[10px] font-bold uppercase tracking-wide">Easy Returns</span>
-                    <span className="text-[10px] text-gray-500">14 Days policy</span>
-                  </div>
-                </div>
-              </div>
+
 
               {/* Accordions Details */}
               <div className="mt-auto">
