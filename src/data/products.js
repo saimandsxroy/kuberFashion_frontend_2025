@@ -246,8 +246,12 @@ export const getProductById = async (id) => {
     return response.data.data;
   } catch (error) {
     console.error(`Failed to fetch product with ID ${id}:`, error);
-    // Return fallback product
-    return fallbackProducts.find(product => product.id === parseInt(id));
+    // Don't fallback to dummy products - let the error propagate
+    // This ensures we show proper "not found" instead of wrong product
+    if (error.response?.status === 404) {
+      return null; // Product doesn't exist
+    }
+    throw error; // Network or other errors should be handled by caller
   }
 };
 
@@ -258,8 +262,12 @@ export const getProductBySlug = async (slug) => {
     return response.data.data;
   } catch (error) {
     console.error(`Failed to fetch product with slug ${slug}:`, error);
-    // Return fallback product
-    return fallbackProducts.find(product => product.slug === slug);
+    // Don't fallback to dummy products - let the error propagate
+    // This ensures we show proper "not found" instead of wrong product
+    if (error.response?.status === 404) {
+      return null; // Product doesn't exist
+    }
+    throw error; // Network or other errors should be handled by caller
   }
 };
 

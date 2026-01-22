@@ -116,7 +116,7 @@ const HomePage = () => {
                   <h2 className="text-3xl sm:text-4xl lg:text-5xl font-heading font-black text-black leading-tight tracking-tighter uppercase mb-2">
                     KVision Membership
                   </h2>
-                  <p className="text-primary-500 mt-1">Purchase specific footwear to unlock premium membership.</p>
+                  <p className="text-primary-500 mt-1">Purchase specific products to unlock premium membership.</p>
                 </div>
                 <a
                   href="/categories/kvision"
