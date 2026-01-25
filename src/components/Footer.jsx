@@ -2,6 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Facebook, Instagram, Mail, Phone, MapPin, CreditCard, Truck, Shield, RefreshCw, ArrowRight, Twitter, Youtube } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import femurLogo from '../assets/femur-studio-logo.jpg';
 
 const footerLinks = [
   {
@@ -159,6 +160,39 @@ export function Footer() {
             <Link to="/terms" className="hover:text-white transition-colors">Terms of Service</Link>
           </div>
         </div>
+      </div>
+
+      {/* Developed by Femur Studio - Premium Credit Section */}
+      <div className="border-t border-white/10 py-12 bg-gradient-to-b from-black to-neutral-950">
+        <a
+          href="https://femur.studio"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="max-w-[1440px] mx-auto px-6 lg:px-12 flex flex-col items-center justify-center space-y-6 group cursor-pointer"
+        >
+          <div className="flex flex-col items-center space-y-3 transition-transform duration-500 group-hover:-translate-y-1">
+            <span className="text-[11px] font-bold tracking-[0.3em] text-gray-500 uppercase group-hover:text-blue-400 transition-colors duration-300">
+              Designed & Developed by
+            </span>
+            <div className="relative">
+              <span className="text-2xl md:text-3xl font-black tracking-[0.2em] text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.1)] group-hover:drop-shadow-[0_0_25px_rgba(59,130,246,0.5)] transition-all duration-500">
+                FEMUR STUDIO
+              </span>
+            </div>
+          </div>
+
+          <div className="relative overflow-hidden rounded-lg border border-white/5 bg-white/5 p-4 group-hover:border-blue-500/30 group-hover:bg-blue-500/5 transition-all duration-500">
+            <img
+              src={femurLogo}
+              alt="Femur Studio"
+              className="h-16 w-auto brightness-90 contrast-125 group-hover:brightness-110 group-hover:scale-105 transition-all duration-700 ease-out"
+            />
+          </div>
+
+          <p className="text-[10px] font-bold tracking-[0.5em] text-gray-600 uppercase group-hover:text-gray-300 transition-colors duration-500">
+            Architecting Digital Excellence
+          </p>
+        </a>
       </div>
     </footer>
   );
