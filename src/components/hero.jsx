@@ -281,8 +281,8 @@ export const HeroHeader = () => {
               <form onSubmit={handleSearch} className="relative flex items-center">
                 <input
                   type="text"
-                  placeholder="SEARCH"
-                  className="w-0 group-hover:w-32 focus:w-48 bg-transparent border-b border-transparent focus:border-black py-1 text-xs uppercase tracking-widest placeholder:text-gray-400 focus:outline-none transition-all duration-500 opacity-0 group-hover:opacity-100 focus:opacity-100 pr-0 group-hover:pr-2"
+                  placeholder="✨ AI SEARCH (NATURAL LANGUAGE)..."
+                  className="w-0 group-hover:w-52 focus:w-64 bg-transparent border-b border-transparent focus:border-black py-1 text-xs uppercase tracking-wider placeholder:text-gray-400 focus:outline-none transition-all duration-500 opacity-0 group-hover:opacity-100 focus:opacity-100 pr-0 group-hover:pr-2"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
@@ -356,8 +356,8 @@ export const HeroHeader = () => {
                 <div className="relative border-b border-gray-200 focus-within:border-black transition-colors">
                   <input
                     type="text"
-                    placeholder="WHAT ARE YOU LOOKING FOR?"
-                    className="w-full py-3 bg-transparent border-none focus:ring-0 text-sm uppercase tracking-wider placeholder:text-gray-400"
+                    placeholder="✨ AI SEARCH (E.G. BLACK KURTA UNDER 1500)..."
+                    className="w-full py-3 bg-transparent border-none focus:ring-0 text-xs uppercase tracking-wider placeholder:text-gray-400"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                   />

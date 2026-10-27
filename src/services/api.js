@@ -64,6 +64,7 @@ api.interceptors.response.use(
 
       if (!isLoginPage) {
         console.log('🔄 Clearing invalid auth and redirecting to login');
+        sessionStorage.setItem('redirectAfterLogin', currentPath);
         localStorage.removeItem('token');
         localStorage.removeItem('user');
 
@@ -119,9 +120,22 @@ export const productsAPI = {
     api.get('/products/filter/category-price', { params: { categorySlug, minPrice, maxPrice, ...params } }),
   search: (query, params = {}) =>
     api.get('/products/search', { params: { q: query, ...params } }),
+  smartSearch: (payload, params = {}) => {
+    if (typeof payload === 'string') {
+      return api.post('/products/smart-search', { query: payload }, { params });
+    }
+    return api.post('/products/smart-search', payload, { params });
+  },
   getTopRated: () => api.get('/products/top-rated'),
   getNewest: () => api.get('/products/newest'),
   getOffers: () => api.get('/products/offers'),
+  generateAiContent: (data) => api.post('/admin/products/ai-generate', data),
+  getVariants: (productId) => api.get(`/admin/products/${productId}/variants`),
+  configureVariants: (productId, variants) => api.post(`/admin/products/${productId}/variants`, variants),
+  updateVariantStock: (productId, variantId, stockQuantity) =>
+    api.put(`/admin/products/${productId}/variants/${variantId}/stock`, { stockQuantity }),
+  updateTrackingMode: (productId, trackingMode) =>
+    api.put(`/admin/products/${productId}/tracking-mode`, { trackingMode }),
 };
 
 // Categories API

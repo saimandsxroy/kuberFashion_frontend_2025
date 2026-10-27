@@ -6,35 +6,51 @@ const CartContext = createContext();
 
 const cartReducer = (state, action) => {
   switch (action.type) {
-    case 'ADD_TO_CART':
-      const matches = (it, p) => (p.productId ? it.productId === p.productId : it.id === p.id);
-      const existingItem = state.items.find(item => matches(item, action.payload));
+    case 'ADD_TO_CART': {
+      const p = action.payload;
+      const pQty = p.quantity || 1;
+      const matches = (it) => {
+        const itPid = it.productId || it.id;
+        const pPid = p.productId || p.id;
+        const sameProduct = String(itPid) === String(pPid);
+        const itSize = it.selectedSize || it.size || '';
+        const pSize = p.selectedSize || p.size || '';
+        const itColor = it.selectedColor || it.color || '';
+        const pColor = p.selectedColor || p.color || '';
+        return sameProduct && itSize === pSize && itColor === pColor;
+      };
+
+      const existingItem = state.items.find(matches);
       if (existingItem) {
         return {
           ...state,
           items: state.items.map(item =>
-            matches(item, action.payload)
-              ? { ...item, quantity: item.quantity + 1 }
+            matches(item)
+              ? { ...item, quantity: item.quantity + pQty }
               : item
           ),
-          totalItems: state.totalItems + 1,
-          totalAmount: state.totalAmount + action.payload.price
+          totalItems: state.totalItems + pQty,
+          totalAmount: state.totalAmount + (p.price * pQty)
         };
       } else {
+        const newItem = {
+          ...p,
+          quantity: pQty,
+          productId: p.productId || p.id,
+          selectedSize: p.selectedSize || p.size || null,
+          selectedColor: p.selectedColor || p.color || null,
+        };
         return {
           ...state,
           items: [
             ...state.items,
-            {
-              ...action.payload,
-              quantity: 1,
-              productId: action.payload.productId || action.payload.id,
-            }
+            newItem
           ],
-          totalItems: state.totalItems + 1,
-          totalAmount: state.totalAmount + action.payload.price
+          totalItems: state.totalItems + pQty,
+          totalAmount: state.totalAmount + (p.price * pQty)
         };
       }
+    }
 
     case 'REMOVE_FROM_CART':
       const itemToRemove = state.items.find(item => item.id === action.payload);
@@ -130,9 +146,14 @@ export const CartProvider = ({ children }) => {
   }, [cart, isAuthenticated]);
 
   const addToCart = async (product) => {
+    const qty = product.quantity || 1;
+    const size = product.selectedSize || product.size || null;
+    const color = product.selectedColor || product.color || null;
+    const targetProductId = product.productId || product.id;
+
     if (isAuthenticated) {
       try {
-        const res = await cartAPI.addItem(product.id, 1, null, null);
+        const res = await cartAPI.addItem(targetProductId, qty, size, color);
         const cartItem = res.data?.data;
         if (cartItem) {
           // Use backend DTO so id is the cart item ID (needed for update/remove)
@@ -145,18 +166,43 @@ export const CartProvider = ({ children }) => {
               image: cartItem.image,
               price: cartItem.price,
               category: cartItem.category,
-              quantity: cartItem.quantity,
+              quantity: cartItem.quantity || qty,
+              selectedSize: cartItem.selectedSize || size,
+              selectedColor: cartItem.selectedColor || color,
             }
           });
+          return true;
         } else {
-          // Fallback (should not happen)
-          dispatch({ type: 'ADD_TO_CART', payload: product });
+          dispatch({
+            type: 'ADD_TO_CART',
+            payload: {
+              ...product,
+              productId: targetProductId,
+              quantity: qty,
+              selectedSize: size,
+              selectedColor: color,
+            }
+          });
+          return true;
         }
       } catch (error) {
         console.error('Failed to add to cart:', error);
+        throw error;
       }
     } else {
-      dispatch({ type: 'ADD_TO_CART', payload: product });
+      const guestId = `${targetProductId}-${size || 'nosize'}-${color || 'nocolor'}`;
+      dispatch({
+        type: 'ADD_TO_CART',
+        payload: {
+          ...product,
+          id: guestId,
+          productId: targetProductId,
+          quantity: qty,
+          selectedSize: size,
+          selectedColor: color,
+        }
+      });
+      return true;
     }
   };
 

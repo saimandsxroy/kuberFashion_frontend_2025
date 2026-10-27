@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Eye, EyeOff, Mail, Lock, ArrowLeft, Phone, ChevronRight } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
@@ -16,6 +16,7 @@ const LoginPage = ({ isAdmin = false }) => {
   const [success, setSuccess] = useState(false);
   const { login, adminLogin, phoneLogin, isAuthenticated, user, loading } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const { showNotification, NotificationComponent } = useNotification();
 
   // Redirect if already authenticated
@@ -32,15 +33,17 @@ const LoginPage = ({ isAdmin = false }) => {
         }
         // If regular user, stay here to allow admin login (switching accounts)
       } else {
-        // Normal login page - redirect everyone
+        // Normal login page - redirect to target or home
         if (userRole === 'ADMIN') {
           navigate('/admin/dashboard', { replace: true });
         } else {
-          navigate('/', { replace: true });
+          const target = location.state?.from?.pathname || sessionStorage.getItem('redirectAfterLogin') || '/';
+          sessionStorage.removeItem('redirectAfterLogin');
+          navigate(target, { replace: true });
         }
       }
     }
-  }, [loading, isAuthenticated, user, navigate, isAdmin]);
+  }, [loading, isAuthenticated, user, navigate, isAdmin, location]);
 
 
   const handleInputChange = (e) => {
@@ -60,9 +63,10 @@ const LoginPage = ({ isAdmin = false }) => {
       if (isAdmin) {
         result = await adminLogin({ email: formData.email, password: formData.password });
       } else {
-        // User flow: phone + password
-        if (!formData.phone || formData.phone.replace(/\D/g, '').length < 10) {
-          showNotification('error', 'Enter a valid 10-digit phone number');
+        // Flexible user flow: phone OR email + password
+        const inputVal = (formData.phone || '').trim();
+        if (!inputVal) {
+          showNotification('error', 'Enter your mobile number or email');
           setIsLoading(false);
           return;
         }
@@ -71,20 +75,33 @@ const LoginPage = ({ isAdmin = false }) => {
           setIsLoading(false);
           return;
         }
-        result = await phoneLogin({ phone: formData.phone, password: formData.password });
+
+        if (inputVal.includes('@')) {
+          result = await login({ email: inputVal, password: formData.password });
+        } else {
+          const cleanPhone = inputVal.replace(/\D/g, '');
+          if (cleanPhone.length < 10) {
+            showNotification('error', 'Enter a valid 10-digit phone number or email address');
+            setIsLoading(false);
+            return;
+          }
+          result = await phoneLogin({ phone: cleanPhone, password: formData.password });
+        }
       }
 
       if (result.success) {
         setSuccess(true);
         showNotification('success', 'Login successful! Redirecting...');
 
-        // Redirect based on role
+        // Redirect based on role and prior intent
         setTimeout(() => {
           const userRole = result.user?.role;
           if (isAdmin || userRole === 'ADMIN') {
             navigate('/admin/dashboard');
           } else {
-            navigate('/');
+            const returnUrl = location.state?.from?.pathname || sessionStorage.getItem('redirectAfterLogin') || '/';
+            sessionStorage.removeItem('redirectAfterLogin');
+            navigate(returnUrl);
           }
         }, 1000);
       } else {
@@ -212,7 +229,7 @@ const LoginPage = ({ isAdmin = false }) => {
               <>
                 <div className="space-y-1">
                   <label htmlFor="phone" className="block text-sm font-medium text-primary-700">
-                    Mobile Number
+                    Mobile Number or Email
                   </label>
                   <div className="mt-1 relative group">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -221,12 +238,12 @@ const LoginPage = ({ isAdmin = false }) => {
                     <input
                       id="phone"
                       name="phone"
-                      type="tel"
+                      type="text"
                       required
                       value={formData.phone}
                       onChange={handleInputChange}
                       className="block w-full pl-10 pr-3 py-3 border border-gray-200 rounded-xl bg-gray-50 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-action/20 focus:border-action focus:bg-white transition-all duration-200 sm:text-sm"
-                      placeholder="Enter your phone number"
+                      placeholder="Enter mobile number or email"
                     />
                   </div>
                 </div>

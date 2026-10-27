@@ -4,7 +4,7 @@ import { productsAPI } from '../services/api';
 let productsCache = null;
 let featuredCache = null;
 let lastFetch = null;
-const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+const CACHE_DURATION = 5 * 1000; // 5 seconds to ensure instant synchronization with Admin updates
 
 // Fallback static products for offline/development mode
 export const fallbackProducts = [

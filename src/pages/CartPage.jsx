@@ -137,7 +137,19 @@ const CartPage = () => {
                             <Trash2 className="h-5 w-5" />
                           </button>
                         </div>
-                        <p className="text-sm text-primary-500 mt-1">{item.category}</p>
+                        <div className="flex items-center gap-2 mt-1 flex-wrap">
+                          <span className="text-sm text-primary-500">{item.category}</span>
+                          {item.selectedSize && (
+                            <span className="text-xs bg-gray-100 text-gray-800 font-semibold px-2 py-0.5 rounded border border-gray-200">
+                              Size: {item.selectedSize}
+                            </span>
+                          )}
+                          {item.selectedColor && (
+                            <span className="text-xs bg-gray-100 text-gray-800 font-semibold px-2 py-0.5 rounded border border-gray-200">
+                              Color: {item.selectedColor}
+                            </span>
+                          )}
+                        </div>
                       </div>
 
                       <div className="flex items-end justify-between mt-4">

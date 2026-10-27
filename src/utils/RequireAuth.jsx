@@ -16,7 +16,7 @@ export default function RequireAuth() {
   if (!isAuthenticated) {
     // Redirect admin routes to admin login
     const isAdminRoute = location.pathname.startsWith('/admin');
-    return <Navigate to={isAdminRoute ? '/admin/login' : '/login'} replace />;
+    return <Navigate to={isAdminRoute ? '/admin/login' : '/login'} state={{ from: location }} replace />;
   }
 
   return <Outlet />;

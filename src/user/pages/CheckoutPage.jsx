@@ -146,8 +146,8 @@ const CheckoutPage = () => {
             const cartItems = cart.items.map(item => ({
                 productId: item.productId || item.id,
                 quantity: item.quantity,
-                selectedSize: item.size || null,
-                selectedColor: item.color || null
+                selectedSize: item.selectedSize || item.size || null,
+                selectedColor: item.selectedColor || item.color || null
             }));
             const orderResponse = await ordersAPI.createOrder({
                 cartItems,
@@ -600,7 +600,19 @@ const CheckoutPage = () => {
                                         </div>
                                         <div className="flex-1 min-w-0">
                                             <p className="text-sm font-bold text-black truncate">{item.name}</p>
-                                            <p className="text-xs text-gray-500">Qty: {item.quantity}</p>
+                                            <div className="flex items-center gap-1.5 flex-wrap mt-0.5">
+                                                <span className="text-xs text-gray-500">Qty: {item.quantity}</span>
+                                                {item.selectedSize && (
+                                                    <span className="text-[10px] bg-gray-200 text-gray-700 font-semibold px-1.5 py-0.2 rounded">
+                                                        {item.selectedSize}
+                                                    </span>
+                                                )}
+                                                {item.selectedColor && (
+                                                    <span className="text-[10px] bg-gray-200 text-gray-700 font-semibold px-1.5 py-0.2 rounded">
+                                                        {item.selectedColor}
+                                                    </span>
+                                                )}
+                                            </div>
                                         </div>
                                         <p className="font-bold text-sm">₹{(item.price * item.quantity).toFixed(0)}</p>
                                     </div>
