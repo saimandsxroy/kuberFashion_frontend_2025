@@ -7,6 +7,7 @@ import { productsAPI } from '../services/api';
 
 const HomePage = () => {
   const [featuredProducts, setFeaturedProducts] = useState([]);
+  const [recommendedProducts, setRecommendedProducts] = useState([]);
   const [likedProducts, setLikedProducts] = useState([]);
   const [trendingProducts, setTrendingProducts] = useState([]);
   const [offerProducts, setOfferProducts] = useState([]);
@@ -21,6 +22,14 @@ const HomePage = () => {
       try {
         setLoading(true);
         setError(null);
+
+        // Load personalized recommendations
+        try {
+          const recRes = await productsAPI.getPersonalizedRecommendations({ limit: 8 });
+          setRecommendedProducts(recRes.data.data || []);
+        } catch (e) {
+          console.warn("Could not load personalized recommendations", e);
+        }
 
         // Load featured products
         const featured = await getFeaturedProducts();
@@ -131,6 +140,16 @@ const HomePage = () => {
               <ProductRibbon products={kvisionProducts} title="" showTitle={false} loading={loading} viewAllUrl="/categories/kvision" />
             </div>
           </section>
+        )}
+
+        {/* Recommended for You Ribbon */}
+        {recommendedProducts.length > 0 && (
+          <ProductRibbon
+            products={recommendedProducts}
+            title="Recommended for You"
+            showTitle={true}
+            loading={loading}
+          />
         )}
 
         <ProductRibbon

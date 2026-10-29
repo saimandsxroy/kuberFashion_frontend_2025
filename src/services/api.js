@@ -136,6 +136,16 @@ export const productsAPI = {
     api.put(`/admin/products/${productId}/variants/${variantId}/stock`, { stockQuantity }),
   updateTrackingMode: (productId, trackingMode) =>
     api.put(`/admin/products/${productId}/tracking-mode`, { trackingMode }),
+  getPersonalizedRecommendations: (params = {}) => api.get('/products/recommendations', { params }),
+  getSimilarProducts: (productId, params = {}) => api.get(`/products/${productId}/similar`, { params }),
+  getCartRecommendations: (params = {}) => api.get('/products/cart-recommendations', { params }),
+};
+
+// Recommendations API
+export const recommendationsAPI = {
+  getPersonalized: (params = {}) => api.get('/products/recommendations', { params }),
+  getSimilar: (productId, params = {}) => api.get(`/products/${productId}/similar`, { params }),
+  getCartRecommendations: (params = {}) => api.get('/products/cart-recommendations', { params }),
 };
 
 // Categories API

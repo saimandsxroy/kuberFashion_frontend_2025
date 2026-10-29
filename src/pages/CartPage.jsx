@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Plus, Minus, Trash2, ShoppingBag, ShieldCheck, ArrowRight } from 'lucide-react';
@@ -6,12 +6,43 @@ import { Button } from '../components/Button';
 import { useCart } from '../context/CartContext';
 import { cn } from '../lib/utils';
 import { useNotification } from '../components/Notification';
+import ProductRibbon from '../components/ProductRibbon';
+import { productsAPI } from '../services/api';
 
 const CartPage = () => {
   const { cart, updateQuantity, removeFromCart, clearCart } = useCart();
   const { showNotification, NotificationComponent } = useNotification();
   const FALLBACK_IMAGE = import.meta.env.VITE_DEFAULT_PRODUCT_IMAGE || 'https://via.placeholder.com/200x200?text=No+Image';
   const navigate = useNavigate();
+
+  const [recommendations, setRecommendations] = useState([]);
+  const [loadingRecs, setLoadingRecs] = useState(false);
+
+  const cartProductIdsKey = cart.items
+    .map(item => item.product?.id || item.productId || item.id)
+    .filter(Boolean)
+    .join(',');
+
+  useEffect(() => {
+    const fetchCartRecs = async () => {
+      try {
+        setLoadingRecs(true);
+        const params = { limit: 6 };
+        if (cartProductIdsKey) {
+          params.cartProductIds = cartProductIdsKey;
+        }
+        const res = await productsAPI.getCartRecommendations(params);
+        setRecommendations(res.data.data || []);
+      } catch (err) {
+        console.warn('Failed to load cart recommendations', err);
+        setRecommendations([]);
+      } finally {
+        setLoadingRecs(false);
+      }
+    };
+
+    fetchCartRecs();
+  }, [cartProductIdsKey]);
 
   const handleQuantityChange = (productId, newQuantity) => {
     if (newQuantity < 1) return;
@@ -50,6 +81,17 @@ const CartPage = () => {
             Start Shopping
           </Button>
         </motion.div>
+
+        {recommendations.length > 0 && (
+          <div className="w-full max-w-7xl mt-16 px-4 sm:px-6 lg:px-8">
+            <ProductRibbon
+              products={recommendations}
+              title="You May Also Like"
+              showTitle={true}
+              loading={loadingRecs}
+            />
+          </div>
+        )}
       </div>
     );
   }
@@ -246,6 +288,18 @@ const CartPage = () => {
             </div>
           </div>
         </div>
+
+        {/* You May Also Like Section */}
+        {(recommendations.length > 0 || loadingRecs) && (
+          <div className="mt-16 pt-10 border-t border-gray-100">
+            <ProductRibbon
+              products={recommendations}
+              title="You May Also Like"
+              showTitle={true}
+              loading={loadingRecs}
+            />
+          </div>
+        )}
       </div>
 
       {/* Mobile Sticky Checkout Bar */}

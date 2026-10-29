@@ -9,6 +9,8 @@ import RequireAuth from './RequireAuth';
 import { cn } from '../lib/utils';
 import { HeroHeader } from './hero';
 import { Footer } from './Footer';
+import ProductRibbon from './ProductRibbon';
+import { productsAPI } from '../services/api';
 
 const Product = ({ product, onBack }) => {
   const [selectedImage, setSelectedImage] = useState(0);
@@ -17,6 +19,25 @@ const Product = ({ product, onBack }) => {
   const [quantity, setQuantity] = useState(1);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   const [expandedSection, setExpandedSection] = useState('description');
+  const [similarProducts, setSimilarProducts] = useState([]);
+  const [loadingSimilar, setLoadingSimilar] = useState(false);
+
+  useEffect(() => {
+    if (product?.id) {
+      setLoadingSimilar(true);
+      productsAPI.getSimilarProducts(product.id, { limit: 6 })
+        .then(res => {
+          setSimilarProducts(res.data.data || []);
+        })
+        .catch(err => {
+          console.warn("Could not load similar products", err);
+          setSimilarProducts([]);
+        })
+        .finally(() => {
+          setLoadingSimilar(false);
+        });
+    }
+  }, [product?.id]);
 
   const { addToCart } = useCart();
   const { toggleWishlist, isInWishlist } = useWishlist();
@@ -439,6 +460,18 @@ const Product = ({ product, onBack }) => {
           </div>
         </div>
       </main>
+
+      {/* Similar Products Section */}
+      {(similarProducts.length > 0 || loadingSimilar) && (
+        <section className="border-t border-gray-100 bg-gray-50/50 pb-12">
+          <ProductRibbon
+            products={similarProducts}
+            title="Similar Products"
+            showTitle={true}
+            loading={loadingSimilar}
+          />
+        </section>
+      )}
 
       {/* Mobile Bottom Bar */}
       <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-100 lg:hidden z-30">
