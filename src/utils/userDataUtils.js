@@ -1,10 +1,19 @@
 import { supabase } from '../lib/supabaseClient';
 
+const checkClient = () => {
+  if (!supabase) {
+    console.warn('Supabase client is not initialized');
+    return false;
+  }
+  return true;
+};
+
 /**
  * Load user's profile data
  */
 export const loadUserProfile = async (userId) => {
   try {
+    if (!checkClient()) return { data: null, error: new Error('Supabase not configured') };
     const { data, error } = await supabase
       .from('users')
       .select('*')
@@ -28,6 +37,7 @@ export const loadUserProfile = async (userId) => {
  */
 export const loadUserWishlist = async (userId) => {
   try {
+    if (!checkClient()) return { data: [], error: new Error('Supabase not configured') };
     const { data, error } = await supabase
       .from('wishlist')
       .select(`
@@ -61,7 +71,7 @@ export const loadUserWishlist = async (userId) => {
  */
 export const addToWishlist = async (userId, productId) => {
   try {
-    // Check if item already exists
+    if (!checkClient()) return { success: false, error: 'Supabase not configured' };
     const { data: existing } = await supabase
       .from('wishlist')
       .select('id')
@@ -101,6 +111,7 @@ export const addToWishlist = async (userId, productId) => {
  */
 export const removeFromWishlist = async (userId, productId) => {
   try {
+    if (!checkClient()) return { success: false, error: 'Supabase not configured' };
     const { error } = await supabase
       .from('wishlist')
       .delete()
@@ -124,6 +135,7 @@ export const removeFromWishlist = async (userId, productId) => {
  */
 export const loadUserOrders = async (userId) => {
   try {
+    if (!checkClient()) return { data: [], error: new Error('Supabase not configured') };
     const { data, error } = await supabase
       .from('orders')
       .select(`
@@ -157,6 +169,7 @@ export const loadUserOrders = async (userId) => {
  */
 export const loadUserAddresses = async (userId) => {
   try {
+    if (!checkClient()) return { data: [], error: new Error('Supabase not configured') };
     const { data, error } = await supabase
       .from('user_addresses')
       .select('*')
@@ -180,6 +193,7 @@ export const loadUserAddresses = async (userId) => {
  */
 export const updateUserProfile = async (userId, profileData) => {
   try {
+    if (!checkClient()) return { success: false, error: 'Supabase not configured' };
     const { data, error } = await supabase
       .from('users')
       .update(profileData)
@@ -208,6 +222,7 @@ export const updateUserProfile = async (userId, profileData) => {
  */
 export const loadAllUsers = async () => {
   try {
+    if (!checkClient()) return { data: [], error: new Error('Supabase not configured') };
     const { data, error } = await supabase
       .from('users')
       .select('*')
@@ -230,6 +245,7 @@ export const loadAllUsers = async () => {
  */
 export const loadAllOrders = async () => {
   try {
+    if (!checkClient()) return { data: [], error: new Error('Supabase not configured') };
     const { data, error } = await supabase
       .from('orders')
       .select(`
@@ -267,6 +283,7 @@ export const loadAllOrders = async () => {
  */
 export const updateUserRole = async (userId, role) => {
   try {
+    if (!checkClient()) return { success: false, error: 'Supabase not configured' };
     const { data, error } = await supabase
       .from('users')
       .update({ role })
@@ -290,6 +307,7 @@ export const updateUserRole = async (userId, role) => {
  * Real-time subscription for product updates (for admin changes)
  */
 export const subscribeToProductUpdates = (callback) => {
+  if (!checkClient()) return null;
   const subscription = supabase
     .channel('product-updates')
     .on(
@@ -310,6 +328,7 @@ export const subscribeToProductUpdates = (callback) => {
  * Real-time subscription for order updates
  */
 export const subscribeToOrderUpdates = (userId, callback) => {
+  if (!checkClient()) return null;
   const subscription = supabase
     .channel(`order-updates-${userId}`)
     .on(

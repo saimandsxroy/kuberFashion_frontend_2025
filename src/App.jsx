@@ -41,9 +41,6 @@ import UserProfilePage from './user/pages/Profile';
 import AdminProfilePage from './admin/pages/Profile';
 import AuthPage from './pages/AuthPage';
 
-// Import test utilities for development
-import '../src/utils/createTestAdmin.js';
-
 function App() {
   return (
     <AuthProvider>

@@ -5,6 +5,11 @@ import { supabase } from '../lib/supabaseClient';
 
 export const createTestAdmin = async () => {
   try {
+    if (!supabase) {
+      console.warn('Supabase is not configured.');
+      return { success: false, error: 'Supabase is not configured' };
+    }
+
     // Create admin user with Supabase Auth
     const { data, error } = await supabase.auth.signUp({
       email: 'admin@kuberfashion.com',
@@ -38,6 +43,11 @@ export const createTestAdmin = async () => {
 // Function to test admin login
 export const testAdminLogin = async () => {
   try {
+    if (!supabase) {
+      console.warn('Supabase is not configured.');
+      return { success: false, error: 'Supabase is not configured' };
+    }
+
     const { data, error } = await supabase.auth.signInWithPassword({
       email: 'admin@kuberfashion.com',
       password: 'admin123456'
