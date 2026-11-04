@@ -2,7 +2,13 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Facebook, Instagram, Mail, Phone, MapPin, CreditCard, Truck, Shield, RefreshCw, ArrowRight, Twitter, Youtube } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import femurLogo from '../assets/femur-studio-logo.jpg';
+import saimandsRoyPhoto from '../assets/saimands-roy.jpg';
+
+// Developer profile links
+const PORTFOLIO_URL = 'https://saimandsroy.femur.studio';
+const LINKEDIN_URL = 'https://linkedin.com/in/saimandsxroy';
+const GITHUB_URL = 'https://github.com/saimandsxroy';
+const LEETCODE_URL = 'https://leetcode.com/saimandsxroy';
 
 const footerLinks = [
   {
@@ -162,37 +168,119 @@ export function Footer() {
         </div>
       </div>
 
-      {/* Developed by Femur Studio - Premium Credit Section */}
-      <div className="border-t border-white/10 py-12 bg-gradient-to-b from-black to-neutral-950">
+      {/* Developed by Saimands Roy - Minimalist Luxury Developer Credit Section */}
+      <div className="w-full bg-black border-t border-zinc-900 py-12 flex flex-col items-center justify-center text-center select-none">
+        {/* Top Subtitle */}
+        <p className="text-[10px] tracking-[0.35em] text-zinc-500 uppercase mb-2.5 font-medium">
+          Designed &amp; Developed By
+        </p>
+
+        {/* Primary Name */}
         <a
-          href="https://femur.studio"
+          href={PORTFOLIO_URL}
           target="_blank"
           rel="noopener noreferrer"
-          className="max-w-[1440px] mx-auto px-6 lg:px-12 flex flex-col items-center justify-center space-y-6 group cursor-pointer"
+          className="group/name transition-transform duration-300 hover:-translate-y-0.5"
         >
-          <div className="flex flex-col items-center space-y-3 transition-transform duration-500 group-hover:-translate-y-1">
-            <span className="text-[11px] font-bold tracking-[0.3em] text-gray-500 uppercase group-hover:text-blue-400 transition-colors duration-300">
-              Designed & Developed by
-            </span>
-            <div className="relative">
-              <span className="text-2xl md:text-3xl font-black tracking-[0.2em] text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.1)] group-hover:drop-shadow-[0_0_25px_rgba(59,130,246,0.5)] transition-all duration-500">
-                FEMUR STUDIO
-              </span>
-            </div>
-          </div>
-
-          <div className="relative overflow-hidden rounded-lg border border-white/5 bg-white/5 p-4 group-hover:border-blue-500/30 group-hover:bg-blue-500/5 transition-all duration-500">
-            <img
-              src={femurLogo}
-              alt="Femur Studio"
-              className="h-16 w-auto brightness-90 contrast-125 group-hover:brightness-110 group-hover:scale-105 transition-all duration-700 ease-out"
-            />
-          </div>
-
-          <p className="text-[10px] font-bold tracking-[0.5em] text-gray-600 uppercase group-hover:text-gray-300 transition-colors duration-500">
-            Architecting Digital Excellence
-          </p>
+          <h3 className="text-xl md:text-2xl font-bold tracking-[0.25em] text-white uppercase mb-6 group-hover/name:text-zinc-200 transition-colors">
+            Saimands Roy
+          </h3>
         </a>
+
+        {/* Center Badge (56x56px Monogram + Photo Hover Cross-fade) */}
+        <a
+          href={PORTFOLIO_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Saimands Roy Portfolio"
+          className="group relative w-14 h-14 rounded-xl bg-zinc-900/60 border border-zinc-800 hover:border-zinc-500 p-1 mb-6 transition-all duration-300 shadow-inner overflow-hidden flex items-center justify-center hover:shadow-[0_0_20px_rgba(255,255,255,0.1)]"
+        >
+          {/* Default Layer: Interlocked Serif "SR" Monogram */}
+          <div className="absolute inset-0 flex items-center justify-center bg-zinc-950 p-1 transition-opacity duration-300 ease-out group-hover:opacity-0">
+            <svg
+              viewBox="0 0 100 100"
+              className="w-full h-full"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <rect width="100" height="100" rx="14" fill="#09090b" />
+              <rect x="1" y="1" width="98" height="98" rx="13" stroke="#27272a" strokeWidth="1.5" />
+              <g
+                fill="#ffffff"
+                style={{
+                  fontFamily: "'Playfair Display', 'Didot', 'Bodoni MT', 'Cinzel', serif",
+                }}
+              >
+                <text
+                  x="37"
+                  y="67"
+                  fontSize="50"
+                  fontWeight="700"
+                  textAnchor="middle"
+                  letterSpacing="-0.06em"
+                >
+                  S
+                </text>
+                <text
+                  x="63"
+                  y="67"
+                  fontSize="50"
+                  fontWeight="700"
+                  textAnchor="middle"
+                  letterSpacing="-0.06em"
+                >
+                  R
+                </text>
+              </g>
+            </svg>
+          </div>
+
+          {/* Hover Layer: Natural Color Portrait Photo */}
+          <img
+            src={saimandsRoyPhoto}
+            alt="Saimands Roy"
+            className="w-full h-full object-cover object-[center_15%] rounded-lg opacity-0 group-hover:opacity-100 group-hover:scale-105 transition-all duration-300 ease-out"
+          />
+        </a>
+
+        {/* Profile Links Row */}
+        <div className="flex flex-wrap items-center justify-center gap-3 md:gap-4 text-[10px] tracking-[0.3em] text-zinc-500 uppercase font-medium">
+          <a
+            href={PORTFOLIO_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:text-white hover:-translate-y-0.5 transition-all duration-200 inline-block"
+          >
+            Portfolio
+          </a>
+          <span className="text-zinc-800 select-none">•</span>
+          <a
+            href={LINKEDIN_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:text-white hover:-translate-y-0.5 transition-all duration-200 inline-block"
+          >
+            LinkedIn
+          </a>
+          <span className="text-zinc-800 select-none">•</span>
+          <a
+            href={GITHUB_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:text-white hover:-translate-y-0.5 transition-all duration-200 inline-block"
+          >
+            GitHub
+          </a>
+          <span className="text-zinc-800 select-none">•</span>
+          <a
+            href={LEETCODE_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:text-white hover:-translate-y-0.5 transition-all duration-200 inline-block"
+          >
+            LeetCode
+          </a>
+        </div>
       </div>
     </footer>
   );
