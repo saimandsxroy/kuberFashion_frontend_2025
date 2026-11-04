@@ -41,7 +41,7 @@ const AdminProducts = () => {
   const [switchingTrackingMode, setSwitchingTrackingMode] = useState(false);
 
   // Use centralized API base URL
-  const BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api';
+  const BASE = import.meta.env.VITE_API_BASE_URL || 'https://kuberfashion-backend-2025.onrender.com/api';
 
   // Form state for add/edit product
   const [productForm, setProductForm] = useState({

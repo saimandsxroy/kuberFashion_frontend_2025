@@ -40,7 +40,7 @@ export const AuthProvider = ({ children }) => {
 
   const { user, session, isAuthenticated, loading } = authState;
 
-  const BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api';
+  const BASE = import.meta.env.VITE_API_BASE_URL || 'https://kuberfashion-backend-2025.onrender.com/api';
 
   const login = async ({ email, password }) => {
     try {

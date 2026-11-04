@@ -19,7 +19,7 @@ export default function AdminUploads() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
 
-  const BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api';
+  const BASE = import.meta.env.VITE_API_BASE_URL || 'https://kuberfashion-backend-2025.onrender.com/api';
 
   const handleFileChange = (e) => {
     const selectedFile = e.target.files?.[0];
